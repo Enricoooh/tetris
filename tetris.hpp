@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <cstdint>
 
 struct tetris_exception {
     tetris_exception(std::string const& str) : m_str(str) {}
