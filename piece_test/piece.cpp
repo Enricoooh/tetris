@@ -47,7 +47,6 @@ private:
 /*std::istream& operator>>(std::istream& is, piece& p);
 std::ostream& operator<<(std::ostream& os, piece const& p);*/
 
-asdas
 //constructors and destructor
 piece::piece() {
     m_side = 0;
@@ -93,6 +92,9 @@ piece::piece(piece const& rhs) {
     m_color = rhs.color();
 
     m_grid = new bool*[side()];
+    for (int i=0; i < side(); ++i){
+        m_grid[i] = new bool[side()];
+    }
 
     for(int i=0;i < m_side;++i){
         for(int j=0;j < m_side;++j){
@@ -107,13 +109,16 @@ piece::piece(piece&& rhs) {
     m_color = rhs.color();
 
     m_grid = rhs.m_grid;
+    rhs.m_grid = nullptr;
 }
 
 piece::~piece() {
-    for (int i=0;i < m_side;++i){
-        delete[] m_grid[i];
+    if(m_grid){
+        for (int i=0;i < m_side;++i){
+            delete[] m_grid[i];
+        }
+        delete[] m_grid;
     }
-    delete[] m_grid;
 }
 
 //assignment operators
@@ -127,6 +132,13 @@ piece& piece::operator=(piece const& rhs) {
             delete[] m_grid[i];
         }
         delete[] m_grid;
+
+        m_grid = nullptr;
+
+        m_grid = new bool*[side()];
+        for (int i=0; i < side(); ++i){
+            m_grid[i] = new bool[side()];
+        }
 
         for(int i=0;i < m_side;++i){
             for(int j=0;j < m_side;++j){
@@ -150,6 +162,7 @@ piece& piece::operator=(piece&& rhs) {
         delete[] m_grid;
 
         m_grid = rhs.m_grid;
+        rhs.m_grid = nullptr;
     }
 
     return *this;
@@ -165,12 +178,17 @@ int piece::color() const {
 }
 
 bool piece::operator()(uint32_t i, uint32_t j) const {
-    return operator()(i, j);
+    if(m_grid and i < side()  and j < side()){
+        return m_grid[i][j];
+    }
+    else
+        throw tetris_exception("operator(): out of bound");
 }
 
 bool& piece::operator()(uint32_t i, uint32_t j) {
-    if(i < side() and j < side())
+    if(m_grid and i < side()  and j < side()){
         return m_grid[i][j];
+    }
     else
         throw tetris_exception("operator(): out of bound");
 }
@@ -203,14 +221,14 @@ bool piece::full() const {
 }
 
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const {
-    if(i + s > side() or j + s > side())
+    if((i + s) > side() or (j + s) > side())
         throw tetris_exception("empty: out of bound");
 
     if(m_grid == nullptr) return true;
 
     for(int m=i;m < i + s;++m){
         for(int n=j;n < j + s;++n){
-            if(operator()(m, n) == true)
+            if(this->operator()(m, n) == true)
                 return false;
         }
     }
@@ -237,13 +255,17 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
 void piece::rotate() {
     bool** m_grid_r = new bool*[side()];
 
+    for (int i=0; i < side(); ++i){
+        m_grid_r[i] = new bool[side()];
+    }
+
     for(int i=0;i < side();++i){
         for(int j=0;j < side();++j){
-            m_grid_r[i][j] = m_grid[j][m_side-i-1];
+            m_grid_r[j][m_side - i - 1] = m_grid[i][j];
         }
     }
 
-    for (int i=0;i < m_side;++i){
+   for (int i=0;i < m_side;++i){
         delete[] m_grid[i];
     }
     delete[] m_grid;
@@ -254,10 +276,18 @@ void piece::rotate() {
 void piece::cut_row(uint32_t i) {
     if(m_grid == nullptr) return;
 
-    delete[] m_grid[i];
+    for(int j=0;j < side();j++){
+        m_grid[i][j] = false;
+    }
 
-    for(int j=0;j < i;++j){
-        m_grid[j] = m_grid[j - 1];
+    for(int j=0;j < side();j++){
+        m_grid[0][j] = false;
+    }
+
+    for(int k=2;k < side();++k){
+        for(int j=0;j < side();++j){
+            m_grid[k][j] = m_grid[k - 1][j];
+        }
     }
 }
 
