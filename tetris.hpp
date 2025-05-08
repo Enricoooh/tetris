@@ -44,6 +44,7 @@ private:
     bool** m_grid;
 };
 
+
 std::istream& operator>>(std::istream& is, piece& p);
 std::ostream& operator<<(std::ostream& os, piece const& p);
 
@@ -90,7 +91,8 @@ public:
         reference operator*();
         pointer operator->();
         iterator& operator++();
-        iterator operator++(int /*dummy*/);
+        iterator operator++(int */
+/*dummy*/);
         bool operator==(iterator const& rhs) const;
         bool operator!=(iterator const& rhs) const;
 
@@ -108,7 +110,10 @@ public:
         reference operator*() const;
         pointer operator->() const;
         const_iterator& operator++();
-        const_iterator operator++(int /*dummy*/);
+        const_iterator operator++(int */
+/*dummy*//*
+/*
+);
         bool operator==(const_iterator const& rhs) const;
         bool operator!=(const_iterator const& rhs) const;
 

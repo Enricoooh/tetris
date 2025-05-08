@@ -1,7 +1,53 @@
-#include "tetris.hpp"
+#include <iostream>
+#include <cassert>
+#include <cstdint>
 
-//implementation piece class
+struct tetris_exception {
+    tetris_exception(std::string const& str) : m_str(str) {}
+    std::string what() const { return m_str; }
 
+private:
+    std::string m_str;
+};
+
+struct piece {
+    piece();
+    piece(uint32_t s, uint8_t c);
+    piece(piece const& rhs);
+    piece(piece&& rhs);
+    ~piece();
+
+    piece& operator=(piece const& rhs);
+    piece& operator=(piece&& rhs);
+
+    bool operator==(piece const& rhs) const;
+    bool operator!=(piece const& rhs) const;
+
+    bool& operator()(uint32_t i, uint32_t j);
+    bool operator()(uint32_t i, uint32_t j) const;
+
+    bool empty(uint32_t i, uint32_t j, uint32_t s) const;
+    bool full(uint32_t i, uint32_t j, uint32_t s) const;
+    bool empty() const;
+    bool full() const;
+
+    void rotate();
+    void cut_row(uint32_t i);
+    void print_ascii_art(std::ostream& os) const;
+
+    uint32_t side() const;
+    int color() const;
+
+private:
+    uint32_t m_side;
+    uint8_t m_color;
+    bool** m_grid;
+};
+
+/*std::istream& operator>>(std::istream& is, piece& p);
+std::ostream& operator<<(std::ostream& os, piece const& p);*/
+
+asdas
 //constructors and destructor
 piece::piece() {
     m_side = 0;
@@ -31,7 +77,14 @@ piece::piece(uint32_t s, uint8_t c) {
     else
         throw tetris_exception("constructor: the color must be > 0");
 
-    m_grid = nullptr;
+    m_grid = new bool*[m_side];
+
+    for (uint32_t i = 0; i < m_side; ++i) {
+        m_grid[i] = new bool[m_side];
+        for (uint32_t j = 0; j < m_side; ++j) {
+            m_grid[i][j] = false;
+        }
+    }
 }
 
 piece::piece(piece const& rhs) {
@@ -112,7 +165,7 @@ int piece::color() const {
 }
 
 bool piece::operator()(uint32_t i, uint32_t j) const {
-    return operator(i, j);
+    return operator()(i, j);
 }
 
 bool& piece::operator()(uint32_t i, uint32_t j) {
@@ -141,7 +194,7 @@ bool piece::full() const {
 
     for(int i=0;i < side();++i){
         for(int j=0;j < side();++j){
-            if(*this(i, j) == false)
+            if(operator()(i, j) == false)
                 return false;
         }
     }
@@ -157,7 +210,7 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const {
 
     for(int m=i;m < i + s;++m){
         for(int n=j;n < j + s;++n){
-            if(*this(m, n) == true)
+            if(operator()(m, n) == true)
                 return false;
         }
     }
@@ -173,7 +226,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
 
     for(int m=i;m < i + s;++m){
         for(int n=j;n < j + s;++n){
-            if(*this(m, n) == false)
+            if(operator()(m, n) == false)
                 return false;
         }
     }
@@ -182,9 +235,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
 }
 
 void piece::rotate() {
-    assert(m_side-i-1 >= 0 and m_side-i-1 < side());
-
-    bool** m_grid_r = new bool*[size()];
+    bool** m_grid_r = new bool*[side()];
 
     for(int i=0;i < side();++i){
         for(int j=0;j < side();++j){
@@ -211,11 +262,33 @@ void piece::cut_row(uint32_t i) {
 }
 
 void piece::print_ascii_art(std::ostream& os) const {
-    if (m_grid[i][j]) {
-        os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
-    } else {
-        os << ' ';
+    if(m_grid == nullptr) return;
+
+    os << " ";
+    for(int i=0;i < side();++i)
+        os << "_";
+    os << std::endl;
+
+    for(int i=0;i < side();++i){
+        os << "|";
+        int j;
+        for(j=0;j < side();++j){
+            if (m_grid[i][j])
+                os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
+            else
+                os << ' ';
+
+        }
+        os << "|";
+
+            os << std::endl;
     }
+
+    os << " ";
+    for(int i=0;i < side();++i)
+        os << "-";
+    os << std::endl;
+
 }
 
 //comparison operators
@@ -243,6 +316,7 @@ void skip(std::istream& is){
     is.putback(c);
 }
 
+/*
 std::istream& piece::operator>>(std::istream& is, piece& p){
     skip(is);
 
@@ -264,4 +338,4 @@ std::istream& piece::operator>>(std::istream& is, piece& p){
 
 void input_to_grid(std::istream& is, bool** grid){
     if(is == nullptr or grid == nullptr) return
-}
+}*/
