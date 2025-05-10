@@ -32,29 +32,33 @@ int main() {
 
     //p.print_ascii_art(std::cout);
 
-/*    p.rotate();
-    p.print_ascii_art(std::cout);
-
     p.rotate();
     p.print_ascii_art(std::cout);
 
     p.rotate();
     p.print_ascii_art(std::cout);
 
-    piece p1 = std::move(p);
+    p.rotate();
+    p.print_ascii_art(std::cout);
+
+    /*piece p1 = std::move(p);
     p1.print_ascii_art(std::cout);*/
 
-/*    piece p2(2, 20);
+    piece p2(8, 20);
 
-    try{
+    p2(0, 0) = false;
+
+    /*try{
         p2(0,0) = true;
     } catch(tetris_exception e){
         std::cout << e.what() << std::endl;
     }
 
-    p2.print_ascii_art(std::cout);
+    p2.print_ascii_art(std::cout);*/
 
-    p = std::move(p2);*/
+    p = std::move(p2);
+
+    p.print_ascii_art(std::cout);
 
     /*p(0, 0) = true;
     p.print_ascii_art(std::cout);
@@ -62,7 +66,6 @@ int main() {
     std::cout << "empty: " << p.empty(3,2,1);
     std::cout << "full: " << p.full(3,2,1);*/
 
-    p.cut_row(5);
-
-    p.print_ascii_art(std::cout);
+    /*if(p == p2) std::cout << true;
+    else std::cout << false;*/
 }

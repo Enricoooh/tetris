@@ -66,10 +66,15 @@ bool pow_of_2(int n) {
 }
 
 piece::piece(uint32_t s, uint8_t c) {
-    if(pow_of_2(s))
+    if(pow_of_2(s)){
+        std::cout << "side: " << s;
         m_side = s;
-    else
-        throw tetris_exception("constructor: the side must be a pow of 2");
+    }
+    else{
+        std::cout << "side: " << s;
+        throw tetris_exception("constructor: side invalid, it must be a pow of 2");
+    }
+
 
     if(c > 0)
         m_color = c;
@@ -346,26 +351,182 @@ void skip(std::istream& is){
     is.putback(c);
 }
 
-/*
-std::istream& piece::operator>>(std::istream& is, piece& p){
+bool c_is_int(char c){
+    return c >= 48 and c <= 57;
+}
+
+void grid_all(piece& p, bool value){
+    //std::cout << "p.side grid all" << p.side();
+    for(int i=0;i < p.side();++i){
+        for(int j=0;j < p.side();++j){
+            p(i, j) = value;
+            std::cout << "p("<<i<<", "<<j<<") = "<<p(i, j)<<std::endl;
+        }
+    }
+}
+
+void GRID(std::istream& is, piece& p){
+
+    char c;
     skip(is);
 
-    //doesn't control if it's int
-    is >> p.m_side;
+    int side_2 = p.side() / 2;
 
-    skip(is);
+    piece pieces[4] = {
+        piece(side_2, p.color()),  // tl
+        piece(side_2, p.color()),  // tr
+        piece(side_2, p.color()),  // bl
+        piece(side_2, p.color())   // br
+    };
 
-    //doesn't control if it's int
-    is >> p.m_color;
+    for(int i=0;i < 4;++i){
+        if(is.peek() == '('){
+            is >> c;
+            skip(is);
 
-    skip(is);
+            if(is.peek() == ')'){
+                is >> c;
+                skip(is);
 
-    p.m_grid = new bool*[side];
-    input_to_grid(is, m_side);
+                //grids[i] all false;
+                grid_all(pieces[i], true);
+
+            }
+            else{
+                GRID(is, pieces[i]);
+
+                if(is.peek() == ')'){
+                    is >> c;
+                    skip(is);
+                }
+                else{
+                    throw tetris_exception("expeted ) in input");
+                }
+            }
+        }
+
+        else if(is.peek() == '['){
+            is >> c;
+            skip(is);
+
+            if(is.peek() == ']'){
+                is >> c;
+                skip(is);
+                //grids[i] all true;
+
+                grid_all(pieces[i], false);
+            }
+            else{
+                throw tetris_exception("expeted ] in input");
+            }
+        }
+        else{
+            std::cout << is.peek();
+            if(is.peek() == -1)
+                break;
+            else
+                throw tetris_exception("expeted ( or [ in input");
+        }
+    }
+
+    //m_grid formata dalle subgrids
+    for (int i = 0; i < side_2; ++i)
+        for (int j = 0; j < side_2; ++j){
+            p(i, j) = pieces[0](i, j);
+        }
+    for (int i = 0; i < side_2; ++i)
+        for (int j = 0; j < side_2; ++j)
+            p(i, j + side_2) = pieces[1](i, j);
+
+    for (int i = 0; i < side_2; ++i)
+        for (int j = 0; j < side_2; ++j)
+            p(i + side_2, j) = pieces[2](i, j);
+
+    for (int i = 0; i < side_2; ++i)
+        for (int j = 0; j < side_2; ++j)
+            p(i + side_2, j + side_2) = pieces[3](i, j);
 
     skip(is);
 }
 
-void input_to_grid(std::istream& is, bool** grid){
-    if(is == nullptr or grid == nullptr) return
-}*/
+std::istream& operator>>(std::istream& is, piece& p){
+    std::cout << "entro operatore" << std::endl;
+    skip(is);
+
+    int side;
+    if(c_is_int(is.peek())){
+        is >> side;
+    }
+    else{
+        throw tetris_exception("operator>>: expected int");
+    }
+
+    skip(is);
+
+    int color;
+    if(c_is_int(is.peek())){
+        is >> color;
+    }
+    else{
+        throw tetris_exception("operator>>: expected int");
+    }
+
+    piece p1(side, color);
+    p = p1;
+
+    skip(is);
+
+    std::cout << "esco operatore: "<< is.peek() << std::endl;
+
+    char c;
+    skip(is);
+
+    if(is.peek() == '('){
+        is >> c;
+        skip(is);
+
+        if(is.peek() == ')'){
+            is >> c;
+            skip(is);
+
+            //grids[i] all false;
+            std::cout << "all true";
+            grid_all(p, true);
+        }
+        else{
+            GRID(is, p);
+
+            if(is.peek() == ')'){
+                is >> c;
+                skip(is);
+            }
+            else{
+                throw tetris_exception("expeted ) in input");
+            }
+        }
+    }
+
+    else if(is.peek() == '['){
+        is >> c;
+        skip(is);
+
+        if(is.peek() == ']'){
+            is >> c;
+            skip(is);
+            //grids[i] all true;
+
+            grid_all(p, false);
+        }
+        else{
+            throw tetris_exception("expeted ] in input");
+        }
+    }
+    else{
+        throw tetris_exception("expeted ( or [ in input");
+    }
+
+    if(is.peek() != -1) throw tetris_exception("expeted no characters at the end");
+
+
+    return is;
+}

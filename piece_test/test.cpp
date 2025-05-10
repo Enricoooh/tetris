@@ -1,15 +1,16 @@
 #include <iostream>
-bool pow_of_2(int n) {
-    if (n < 1)
-        return false;
-    if (n == 1)
-        return true;
-    if (n % 2 != 0)
-        return false;
-    else
-        return pow_of_2(n/2);
+void test(std::istream& is) {
+    int a = 0;
+    std::string j;
+    if(is.peek() >= 48 and is.peek() < 58){
+        is >> a;
+        std::cout << "é INT";
+    }
+    else{
+        std::cout << "NON é INT";
+    }
 }
 
 int main(){
-    std::cout << pow_of_2(10);
+    test(std::cout);
 }
