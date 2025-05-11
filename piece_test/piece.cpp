@@ -44,8 +44,8 @@ private:
     bool** m_grid;
 };
 
-/*std::istream& operator>>(std::istream& is, piece& p);
-std::ostream& operator<<(std::ostream& os, piece const& p);*/
+std::istream& operator>>(std::istream& is, piece& p);
+std::ostream& operator<<(std::ostream& os, piece const& p);
 
 //constructors and destructor
 piece::piece() {
@@ -66,12 +66,11 @@ bool pow_of_2(int n) {
 }
 
 piece::piece(uint32_t s, uint8_t c) {
+    std::cout << "s: " <<s;
     if(pow_of_2(s)){
-        std::cout << "side: " << s;
         m_side = s;
     }
     else{
-        std::cout << "side: " << s;
         throw tetris_exception("constructor: side invalid, it must be a pow of 2");
     }
 
@@ -360,18 +359,21 @@ void grid_all(piece& p, bool value){
     for(int i=0;i < p.side();++i){
         for(int j=0;j < p.side();++j){
             p(i, j) = value;
-            std::cout << "p("<<i<<", "<<j<<") = "<<p(i, j)<<std::endl;
+            //std::cout << "p("<<i<<", "<<j<<") = "<<p(i, j)<<std::endl;
         }
     }
 }
 
 void GRID(std::istream& is, piece& p){
-
+    if(p.side() < 2) {
+        throw tetris_exception("i'm throwing an error");
+    }
     char c;
     skip(is);
 
     int side_2 = p.side() / 2;
 
+    std::cout << " side_2 " << side_2 << std::endl;
     piece pieces[4] = {
         piece(side_2, p.color()),  // tl
         piece(side_2, p.color()),  // tr
@@ -400,7 +402,7 @@ void GRID(std::istream& is, piece& p){
                     skip(is);
                 }
                 else{
-                    throw tetris_exception("expeted ) in input");
+                    throw tetris_exception("GRID: expeted ) in input");
                 }
             }
         }
@@ -417,7 +419,7 @@ void GRID(std::istream& is, piece& p){
                 grid_all(pieces[i], false);
             }
             else{
-                throw tetris_exception("expeted ] in input");
+                throw tetris_exception("GRID: expeted ] in input");
             }
         }
         else{
@@ -425,7 +427,7 @@ void GRID(std::istream& is, piece& p){
             if(is.peek() == -1)
                 break;
             else
-                throw tetris_exception("expeted ( or [ in input");
+                throw tetris_exception("GRID: expeted ( or [ in input");
         }
     }
 
@@ -450,7 +452,6 @@ void GRID(std::istream& is, piece& p){
 }
 
 std::istream& operator>>(std::istream& is, piece& p){
-    std::cout << "entro operatore" << std::endl;
     skip(is);
 
     int side;
@@ -476,8 +477,6 @@ std::istream& operator>>(std::istream& is, piece& p){
 
     skip(is);
 
-    std::cout << "esco operatore: "<< is.peek() << std::endl;
-
     char c;
     skip(is);
 
@@ -501,7 +500,7 @@ std::istream& operator>>(std::istream& is, piece& p){
                 skip(is);
             }
             else{
-                throw tetris_exception("expeted ) in input");
+                throw tetris_exception("operator>>: expeted ) in input");
             }
         }
     }
@@ -518,15 +517,116 @@ std::istream& operator>>(std::istream& is, piece& p){
             grid_all(p, false);
         }
         else{
-            throw tetris_exception("expeted ] in input");
+            throw tetris_exception("operator>>: expeted ] in input");
         }
     }
     else{
-        throw tetris_exception("expeted ( or [ in input");
+        throw tetris_exception("operator>>: expeted ( or [ in input");
     }
 
-    if(is.peek() != -1) throw tetris_exception("expeted no characters at the end");
+    if(is.peek() != -1) throw tetris_exception("operator>>: expeted no characters at the end");
 
 
     return is;
 }
+
+//output parser
+
+void piece_output(std::ostream& os, piece const& p){
+    int side_2 = p.side() / 2;
+
+    //top left
+    if(p.empty(0,0, side_2)){
+        os << "([]";
+    }
+    else if(p.full(0,0, side_2)){
+        os << "(()";
+    }
+    else{
+        os << "(";
+        piece p_tmp(side_2, p.color());
+        for(int i=0;i < side_2;i++){
+            for(int j=0;j < side_2;j++){
+                //std::cout << "top left side: " << side_2 << " i: " << i << ", j: " << j << std::endl;
+                p_tmp(i, j) = p(i, j);
+            }
+        }
+        //os << "(";
+        //std::cout << "ricorsione" << side_2 << std::endl;
+        piece_output(os, p_tmp);
+    }
+
+    //top right
+    if(p.empty(0,side_2, side_2)){
+        os << "[]";
+    }
+    else if(p.full(0,side_2, side_2)){
+        os << "()";
+    }
+    else{
+        piece p_tmp(side_2, p.color());
+
+        for(int i=0;i < side_2;++i){
+            for(int j=0;j < side_2;++j){
+                //std::cout << "top right" << std::endl;
+                p_tmp(i, j) = p(i, j + side_2);
+            }
+        }
+
+        //os << "(";
+        piece_output(os, p_tmp);
+    }
+
+    //bottom left
+    if(p.empty(side_2,0, side_2)){
+        os << "[]";
+    }
+    else if(p.full(side_2,0, side_2)){
+        os << "()";
+    }
+    else{
+        piece p_tmp(side_2, p.color());
+
+        for(int i=0;i < side_2;++i){
+            for(int j=0;j < side_2;++j){
+                //std::cout << "bottom left" << std::endl;
+                p_tmp(i, j) = p(i + side_2, j);
+            }
+        }
+
+        //os << "(";
+        piece_output(os, p_tmp);
+    }
+
+    //bottom right
+    if(p.empty(side_2,side_2, side_2)){
+        os << "[])";
+    }
+    else if(p.full(side_2,side_2, side_2)){
+        os << "())";
+    }
+    else{
+        piece p_tmp(side_2, p.color());
+
+        for(int i=0;i < side_2;++i){
+            for(int j=0;j < side_2;++j){
+                //std::cout << "bottom right" << std::endl;
+                p_tmp(i, j) = p(i + side_2, j + side_2);
+            }
+        }
+
+        //os << "(";
+        piece_output(os, p_tmp);
+        os << ")";
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, piece const& p){
+    os << p.side() << " " << p.color() << " ";
+
+    piece_output(os, p);
+
+    return os;
+}
+
+

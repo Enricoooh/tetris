@@ -12,6 +12,8 @@ int main() {
         //4 75 (([]()[]())(()[]()[])([]()()())(()[]()()))
 
         p.print_ascii_art(std::cout);
+
+        std::cout << p;
     }catch(tetris_exception e){
         std::cout << e.what();
     }
