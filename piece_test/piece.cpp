@@ -66,7 +66,7 @@ bool pow_of_2(int n) {
 }
 
 piece::piece(uint32_t s, uint8_t c) {
-    std::cout << "s: " <<s;
+    //std::cout << "s: " <<s;
     if(pow_of_2(s)){
         m_side = s;
     }
@@ -373,7 +373,7 @@ void GRID(std::istream& is, piece& p){
 
     int side_2 = p.side() / 2;
 
-    std::cout << " side_2 " << side_2 << std::endl;
+    //std::cout << " side_2 " << side_2 << std::endl;
     piece pieces[4] = {
         piece(side_2, p.color()),  // tl
         piece(side_2, p.color()),  // tr
