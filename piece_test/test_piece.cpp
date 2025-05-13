@@ -1,5 +1,6 @@
 #include <iostream>
-#include "piece.cpp"
+#include <sstream>
+#include "../tetris.cpp"
 
 int main() {
     piece p(8, 20);
@@ -12,7 +13,7 @@ int main() {
         }
     }
 
-    p.print_ascii_art(std::cout);
+    //p.print_ascii_art(std::cout);
 
     //std::cout << "fu: " << p.full() << std::endl;
 
@@ -32,14 +33,14 @@ int main() {
 
     //p.print_ascii_art(std::cout);
 
-    p.rotate();
+/*    p.rotate();
     p.print_ascii_art(std::cout);
 
     p.rotate();
     p.print_ascii_art(std::cout);
 
     p.rotate();
-    p.print_ascii_art(std::cout);
+    p.print_ascii_art(std::cout);*/
 
     /*piece p1 = std::move(p);
     p1.print_ascii_art(std::cout);*/
@@ -56,14 +57,20 @@ int main() {
 
     p2.print_ascii_art(std::cout);*/
 
-    p = std::move(p2);
+    //p = std::move(p2);
+
+    //p.print_ascii_art(std::cout);
+
+    std::istringstream is("8 254 (()(()[][][])([]()()[])[])");
+    is >> p;
 
     p.print_ascii_art(std::cout);
 
-    /*p(0, 0) = true;
+    p.cut_row(2);
+    //p(0, 0) = true;
     p.print_ascii_art(std::cout);
 
-    std::cout << "empty: " << p.empty(3,2,1);
+/*    std::cout << "empty: " << p.empty(3,2,1);
     std::cout << "full: " << p.full(3,2,1);*/
 
     /*if(p == p2) std::cout << true;

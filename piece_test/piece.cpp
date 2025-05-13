@@ -280,18 +280,14 @@ void piece::rotate() {
 void piece::cut_row(uint32_t i) {
     if(m_grid == nullptr) return;
 
-    for(int j=0;j < side();j++){
-        m_grid[i][j] = false;
+    for(int k=i;k != 0;--k){
+        for(int j=0;j < side();j++){
+            m_grid[k][j] = m_grid[k - 1][j];
+        }
     }
 
     for(int j=0;j < side();j++){
         m_grid[0][j] = false;
-    }
-
-    for(int k=2;k < side();++k){
-        for(int j=0;j < side();++j){
-            m_grid[k][j] = m_grid[k - 1][j];
-        }
     }
 }
 
