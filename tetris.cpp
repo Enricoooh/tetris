@@ -21,6 +21,8 @@ bool pow_of_2(int n) {
 }
 
 piece::piece(uint32_t s, uint8_t c) {
+    //std::cout << "c: " << (int)c << std::endl;
+
     if(pow_of_2(s)){
         m_side = s;
     }
@@ -28,8 +30,12 @@ piece::piece(uint32_t s, uint8_t c) {
         throw tetris_exception("piece constructor: side invalid, it must be a pow of 2");
     }
 
-    if(c > 0)
+
+    if(c > 0){
         m_color = c;
+        //std::cout << "colore assegnato: " << (int)m_color << std::endl;
+    }
+
     else
         throw tetris_exception("piece constructor: the color must be > 0");
 
@@ -247,6 +253,7 @@ void piece::cut_row(uint32_t i) {
 void piece::print_ascii_art(std::ostream& os) const {
     if(m_grid == nullptr) return;
 
+    std::cout << "color " << color();
     os << "-";
     for(int i=0;i < side() + 1;++i)
         os << "-";
@@ -413,15 +420,19 @@ std::istream& operator>>(std::istream& is, piece& p){
 
     skip(is);
 
-    int color;
+    int color1;
+    std::cout << "color prima prima: " << color1 << std::endl;
     if(c_is_int(is.peek())){
-        is >> color;
+        std::cout << "color prima: " << color1 << std::endl;
+        is >> color1;
     }
     else{
         throw tetris_exception("piece operator>>: expected int");
     }
 
-    piece p1(side, color);
+    std::cout << "color dopo: " << color1 << std::endl;
+
+    piece p1(side, color1);
     p = p1;
 
     skip(is);
@@ -575,7 +586,7 @@ std::ostream& operator<<(std::ostream& os, piece const& p){
 //constructors and destructor
 tetris::tetris() : m_score(0),m_width(0),m_height(0),m_field(nullptr){}
 
-tetris::tetris(uint32_t w, uint32_t h, uint32_t s) : m_width(w), m_height(h){
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s) : m_width(w), m_height(h), m_field(nullptr){
     if(m_width == 0){
         throw tetris_exception("tetris constructor: the width must be > 0");
     }
@@ -610,17 +621,13 @@ tetris::tetris(tetris&& rhs){
     rhs.m_field = nullptr;
 }
 
-tetris::~tetris(){
+tetris::~tetris() {
     node* n = m_field;
-    node* prev = nullptr;
     while(n != nullptr){
-        prev = n;
+        node* temp = n;
         n = n->next;
-
-        delete prev;
+        delete temp;
     }
-
-    if(prev) delete prev;
 }
 
 //assignment operators
@@ -715,25 +722,80 @@ uint32_t tetris::height() const{
 }
 
 //game operations
-bool tetris::containment(piece const& p, int x, int y) const{
-    return true;
-}
 
-void tetris::print_ascii_art(std::ostream& os) const{
-    for(int i=0; i < m_width; i++){
-        for(int j=0; j < m_height; j++){
-            for(node* n = m_field; n != nullptr; n = n->next){
-                if (n->p(i, j))
-                    os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
-                else
-                    os << ' ';
+void tetris::print_ascii_art(std::ostream& os) const {
+    std::cerr << "Allocazione griglia...\n";
+    struct cell {
+        bool value = false;
+        uint8_t color = 0;
+    };
+
+    cell** m_grid = new cell*[m_height];
+    for (int y = 0; y < m_height; ++y) {
+        m_grid[y] = new cell[m_width];
+    }
+
+    std::cerr << "Inizializzazione griglia...\n";
+    for (int y = 0; y < m_height; ++y) {
+        for (int x = 0; x < m_width; ++x) {
+            m_grid[y][x].value = false;
+            m_grid[y][x].color = 0;
+        }
+    }
+
+    std::cerr << "Inizio copia pezzi...\n";
+    for (node* n = m_field; n != nullptr; n = n->next) {
+        std::cerr << "  Pezzo in posizione (" << n->tp.x << ", " << n->tp.y << ")\n";
+        for (int dy = 0; dy < n->tp.p.side(); ++dy) {
+            for (int dx = 0; dx < n->tp.p.side(); ++dx) {
+                if (n->tp.p(dx, dy)) {
+                    int gx = n->tp.x + dx;
+                    int gy = n->tp.y + dy;
+
+                    if (gx >= 0 && gx < m_width && gy >= 0 && gy < m_height) {
+                        m_grid[gy][gx].value = true;
+                        m_grid[gy][gx].color = n->tp.p.color();
+                    } else {
+                        std::cerr << "  ⚠️ Posizione fuori griglia: (" << gx << ", " << gy << ")\n";
+                    }
+                }
             }
         }
     }
+
+    std::cerr << "Stampa...\n";
+    os << "  ";
+    for (int x = 0; x < m_width; ++x)
+        os << x;
+    os << "\n +";
+    for (int x = 0; x < m_width; ++x)
+        os << "-";
+    os << "+\n";
+
+    for (int y = 0; y < m_height; ++y) {
+        os << y <<"|";
+        for (int x = 0; x < m_width; ++x) {
+            if (m_grid[y][x].value)
+                os << "\033[48;5;" << int(m_grid[y][x].color) << "m \033[m";
+            else
+                os << " ";
+        }
+        os << "|\n";
+    }
+
+    os << " +";
+    for (int x = 0; x < m_width; ++x)
+        os << "-";
+    os << "+\n";
+
+    std::cerr << "Deallocazione...\n";
+    for (int y = 0; y < m_height; ++y)
+        delete[] m_grid[y];
+    delete[] m_grid;
 }
 
 bool tetris::containment(piece const& p, int x, int y) const{
-    if(y < 0) throw tetris_exception("tetris containment: the y can't be < 0")
+    if(y < 0) throw tetris_exception("tetris containment: the y can't be < 0");
 
     for(node* n = m_field; n != nullptr; n = n->next){
 
@@ -748,18 +810,20 @@ bool tetris::containment(piece const& p, int x, int y) const{
             }
         }
     }
-
+    std::cout << "contaiment";
     return true;
 }
 
 void tetris::add(piece const& p, int x, int y){
+    std::cout << "add";
     if(containment(p, x, y)){
-        tetris_piece tp(p, x, y);
+        tetris_piece tp{p, x, y};
 
-        node* n = new node(tp, m_field);
+        node* n = new node{tp, m_field};
         m_field = n;
     }
     else{
+        std::cout << "\nERRORE";
         throw tetris_exception("tetris add: containment failed");
     }
 }

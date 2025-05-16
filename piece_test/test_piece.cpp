@@ -3,7 +3,7 @@
 #include "../tetris.cpp"
 
 int main() {
-    piece p(8, 20);
+    piece p(8, 26);
 
     std::cout << "em: " << p.empty() << std::endl;
 
