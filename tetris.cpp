@@ -97,11 +97,11 @@ piece& piece::operator=(piece const& rhs) {
         m_grid = nullptr;
 
         m_grid = new bool*[side()];
-        for (int i=0; i < side(); ++i){
+        for (uint32_t i=0; i < side(); ++i){
             m_grid[i] = new bool[side()];
         }
 
-        for(int i=0;i < m_side;++i){
+        for(uint32_t i=0;i < m_side;++i){
             for(int j=0;j < m_side;++j){
                 m_grid[i][j] = rhs.m_grid[i][j];
             }
@@ -117,7 +117,7 @@ piece& piece::operator=(piece&& rhs) {
 
         m_color = rhs.color();
 
-        for (int i=0;i < m_side;++i) {
+        for (uint32_t i=0;i < m_side;++i) {
             delete[] m_grid[i];
         }
         delete[] m_grid;
@@ -158,7 +158,7 @@ bool& piece::operator()(uint32_t i, uint32_t j) {
 bool piece::empty() const {
     if(m_grid == nullptr) return true;
 
-    for(int i=0;i < side();++i){
+    for(uint32_t i=0;i < side();++i){
         for(int j=0;j < side();++j){
             if(this->operator()(i, j) == true)
                 return false;
@@ -171,8 +171,8 @@ bool piece::empty() const {
 bool piece::full() const {
     if(m_grid == nullptr) return false;
 
-    for(int i=0;i < side();++i){
-        for(int j=0;j < side();++j){
+    for(uint32_t i=0;i < side();++i){
+        for(uint32_t j=0;j < side();++j){
             if(operator()(i, j) == false)
                 return false;
         }
@@ -187,8 +187,8 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const {
 
     if(m_grid == nullptr) return true;
 
-    for(int m=i;m < i + s;++m){
-        for(int n=j;n < j + s;++n){
+    for(uint32_t m=i;m < i + s;++m){
+        for(uint32_t n=j;n < j + s;++n){
             if(this->operator()(m, n) == true)
                 return false;
         }
@@ -203,8 +203,8 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
 
     if(m_grid == nullptr) return false;
 
-    for(int m=i;m < i + s;++m){
-        for(int n=j;n < j + s;++n){
+    for(uint32_t m=i;m < i + s;++m){
+        for(uint32_t n=j;n < j + s;++n){
             if(operator()(m, n) == false)
                 return false;
         }
@@ -216,17 +216,17 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
 void piece::rotate() {
     bool** m_grid_r = new bool*[side()];
 
-    for (int i=0; i < side(); ++i){
+    for (uint32_t i=0; i < side(); ++i){
         m_grid_r[i] = new bool[side()];
     }
 
-    for(int i=0;i < side();++i){
-        for(int j=0;j < side();++j){
+    for(uint32_t i=0;i < side();++i){
+        for(uint32_t j=0;j < side();++j){
             m_grid_r[j][m_side - i - 1] = m_grid[i][j];
         }
     }
 
-   for (int i=0;i < m_side;++i){
+   for (uint32_t i=0;i < m_side;++i){
         delete[] m_grid[i];
     }
     delete[] m_grid;
@@ -237,13 +237,13 @@ void piece::rotate() {
 void piece::cut_row(uint32_t i) {
     if(m_grid == nullptr) return;
 
-    for(int k=i;k != 0;--k){
+    for(uint32_t k=i;k != 0;--k){
         for(int j=0;j < side();j++){
             m_grid[k][j] = m_grid[k - 1][j];
         }
     }
 
-    for(int j=0;j < side();j++){
+    for(uint32_t j=0;j < side();j++){
         m_grid[0][j] = false;
     }
 }
@@ -252,13 +252,13 @@ void piece::print_ascii_art(std::ostream& os) const {
     if(m_grid == nullptr) return;
 
     os << "-";
-    for(int i=0;i < side() + 1;++i)
+    for(uint32_t i=0;i < side() + 1;++i)
         os << "-";
     os << std::endl;
 
-    for(int i=0;i < side();++i){
+    for(uint32_t i=0;i < side();++i){
         os << "|";
-        int j;
+        uint32_t j;
         for(j=0;j < side();++j){
             if (m_grid[i][j])
                 os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
@@ -273,7 +273,7 @@ void piece::print_ascii_art(std::ostream& os) const {
     }
 
     os << "-";
-    for(int i=0;i < side() + 1;++i)
+    for(uint32_t i=0;i < side() + 1;++i)
         os << "-";
     os << std::endl;
 
@@ -286,8 +286,8 @@ bool piece::operator==(piece const& rhs) const {
     if(side() != rhs.side()) return false;
     if(color() != rhs.color()) return false;
 
-    for(int i=0;i < side();++i){
-        for(int j=0;j < side();++j){
+    for(uint32_t i=0;i < side();++i){
+        for(uint32_t j=0;j < side();++j){
             if(m_grid[i][j] != rhs.m_grid[i][j]) return false;
         }
     }
@@ -312,8 +312,8 @@ bool c_is_int(char c){
 }
 
 void grid_all(piece& p, bool value){
-    for(int i=0;i < p.side();++i){
-        for(int j=0;j < p.side();++j){
+    for(uint32_t i=0;i < p.side();++i){
+        for(uint32_t j=0;j < p.side();++j){
             p(i, j) = value;
         }
     }
@@ -385,20 +385,20 @@ void GRID(std::istream& is, piece& p){
     }
 
     //piece formed by the subpieces
-    for (int i = 0; i < side_2; ++i)
-        for (int j = 0; j < side_2; ++j){
+    for (uint32_t i = 0; i < side_2; ++i)
+        for (uint32_t j = 0; j < side_2; ++j){
             p(i, j) = pieces[0](i, j);
         }
-    for (int i = 0; i < side_2; ++i)
-        for (int j = 0; j < side_2; ++j)
+    for (uint32_t i = 0; i < side_2; ++i)
+        for (uint32_t j = 0; j < side_2; ++j)
             p(i, j + side_2) = pieces[1](i, j);
 
-    for (int i = 0; i < side_2; ++i)
-        for (int j = 0; j < side_2; ++j)
+    for (uint32_t i = 0; i < side_2; ++i)
+        for (uint32_t j = 0; j < side_2; ++j)
             p(i + side_2, j) = pieces[2](i, j);
 
-    for (int i = 0; i < side_2; ++i)
-        for (int j = 0; j < side_2; ++j)
+    for (uint32_t i = 0; i < side_2; ++i)
+        for (uint32_t j = 0; j < side_2; ++j)
             p(i + side_2, j + side_2) = pieces[3](i, j);
 
     skip(is);
@@ -486,7 +486,7 @@ std::istream& operator>>(std::istream& is, piece& p){
 //output parser
 
 void piece_output(std::ostream& os, piece const& p){
-    int side_2 = p.side() / 2;
+    uint32_t side_2 = p.side() / 2;
 
     //top left
     if(p.empty(0,0, side_2)){
@@ -498,8 +498,8 @@ void piece_output(std::ostream& os, piece const& p){
     else{
         os << "(";
         piece p_tmp(side_2, p.color());
-        for(int i=0;i < side_2;i++){
-            for(int j=0;j < side_2;j++){
+        for(uint32_t i=0;i < side_2;i++){
+            for(uint32_t j=0;j < side_2;j++){
                 p_tmp(i, j) = p(i, j);
             }
         }
@@ -517,8 +517,8 @@ void piece_output(std::ostream& os, piece const& p){
     else{
         piece p_tmp(side_2, p.color());
 
-        for(int i=0;i < side_2;++i){
-            for(int j=0;j < side_2;++j){
+        for(uint32_t i=0;i < side_2;++i){
+            for(uint32_t j=0;j < side_2;++j){
                 p_tmp(i, j) = p(i, j + side_2);
             }
         }
@@ -537,8 +537,8 @@ void piece_output(std::ostream& os, piece const& p){
     else{
         piece p_tmp(side_2, p.color());
 
-        for(int i=0;i < side_2;++i){
-            for(int j=0;j < side_2;++j){
+        for(uint32_t i=0;i < side_2;++i){
+            for(uint32_t j=0;j < side_2;++j){
                 p_tmp(i, j) = p(i + side_2, j);
             }
         }
@@ -556,8 +556,8 @@ void piece_output(std::ostream& os, piece const& p){
     else{
         piece p_tmp(side_2, p.color());
 
-        for(int i=0;i < side_2;++i){
-            for(int j=0;j < side_2;++j){
+        for(uint32_t i=0;i < side_2;++i){
+            for(uint32_t j=0;j < side_2;++j){
                 p_tmp(i, j) = p(i + side_2, j + side_2);
             }
         }
@@ -580,13 +580,17 @@ std::ostream& operator<<(std::ostream& os, piece const& p){
 //constructors and destructor
 tetris::tetris() : m_score(0),m_width(0),m_height(0),m_field(nullptr){}
 
-tetris::tetris(uint32_t w, uint32_t h, uint32_t s) : m_width(w), m_height(h), m_field(nullptr){
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s) : m_width(w), m_height(h), m_score(s), m_field(nullptr){
     if(m_width == 0){
         throw tetris_exception("tetris constructor: the width must be > 0");
     }
 
     if(m_height == 0){
         throw tetris_exception("tetris constructor: the height must be > 0");
+    }
+
+    if(m_score != 0){
+        throw tetris_exception("tetris constructor: the score must be == 0");
     }
 }
 
@@ -724,23 +728,23 @@ void tetris::print_ascii_art(std::ostream& os) const {
     };
 
     cell** m_grid = new cell*[m_height];
-    for (int y = 0; y < m_height; ++y) {
+    for (uint32_t y = 0; y < m_height; ++y) {
         m_grid[y] = new cell[m_width];
     }
 
-    for (int y = 0; y < m_height; ++y) {
-        for (int x = 0; x < m_width; ++x) {
+    for (uint32_t y = 0; y < m_height; ++y) {
+        for (uint32_t x = 0; x < m_width; ++x) {
             m_grid[y][x].value = false;
             m_grid[y][x].color = 0;
         }
     }
 
     for (node* n = m_field; n != nullptr; n = n->next) {
-        for (int dy = 0; dy < n->tp.p.side(); ++dy) {
-            for (int dx = 0; dx < n->tp.p.side(); ++dx) {
+        for (uint32_t dy = 0; dy < n->tp.p.side(); ++dy) {
+            for (uint32_t dx = 0; dx < n->tp.p.side(); ++dx) {
                 if (n->tp.p(dx, dy)) {
-                    int gx = n->tp.x + dx;
-                    int gy = n->tp.y + dy;
+                    uint32_t gx = n->tp.x + dx;
+                    uint32_t gy = n->tp.y + dy;
 
                     if (gx >= 0 && gx < m_width && gy >= 0 && gy < m_height) {
                         m_grid[gy][gx].value = true;
@@ -752,16 +756,16 @@ void tetris::print_ascii_art(std::ostream& os) const {
     }
 
     os << "  ";
-    for (int x = 0; x < m_width; ++x)
+    for (uint32_t x = 0; x < m_width; ++x)
         os << x;
     os << "\n +";
-    for (int x = 0; x < m_width; ++x)
+    for (uint32_t x = 0; x < m_width; ++x)
         os << "-";
     os << "+\n";
 
-    for (int y = 0; y < m_height; ++y) {
+    for (uint32_t y = 0; y < m_height; ++y) {
         os << y <<"|";
-        for (int x = 0; x < m_width; ++x) {
+        for (uint32_t x = 0; x < m_width; ++x) {
             if (m_grid[y][x].value)
                 os << "\033[48;5;" << int(m_grid[y][x].color) << "m \033[m";
             else
@@ -771,11 +775,11 @@ void tetris::print_ascii_art(std::ostream& os) const {
     }
 
     os << " +";
-    for (int x = 0; x < m_width; ++x)
+    for (uint32_t x = 0; x < m_width; ++x)
         os << "-";
     os << "+\n";
 
-    for (int y = 0; y < m_height; ++y)
+    for (uint32_t y = 0; y < m_height; ++y)
         delete[] m_grid[y];
     delete[] m_grid;
 }
