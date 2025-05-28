@@ -235,10 +235,12 @@ void piece::rotate() {
 }
 
 void piece::cut_row(uint32_t i) {
-    if(m_grid == nullptr) return;
+    if(m_grid == nullptr or i >= side()) {
+        throw tetris_exception("cut_row: invalid input");
+    }
 
     for(uint32_t k=i;k != 0;--k){
-        for(int j=0;j < side();j++){
+        for(uint32_t j=0;j < side();j++){
             m_grid[k][j] = m_grid[k - 1][j];
         }
     }
@@ -321,7 +323,7 @@ void grid_all(piece& p, bool value){
 
 void GRID(std::istream& is, piece& p){
     if(p.side() < 2) {
-        throw tetris_exception("piece GRID: i'm throwing an error");
+        throw tetris_exception("piece GRID: piece in parser too much big");
     }
     char c;
     skip(is);
@@ -410,6 +412,8 @@ std::istream& operator>>(std::istream& is, piece& p){
     int side;
     if(c_is_int(is.peek())){
         is >> side;
+        if(side > p.side())
+            throw tetris_exception("piece operator>>: side is too big");
     }
     else{
         throw tetris_exception("piece operator>>: expected int");
@@ -594,17 +598,17 @@ tetris::tetris(uint32_t w, uint32_t h, uint32_t s) : m_width(w), m_height(h), m_
     }
 }
 
-tetris::tetris(tetris const& rhs){
-    m_score = rhs.m_score;
+tetris::tetris(tetris const& rhs) : m_score(rhs.m_score), m_width(rhs.m_width), m_height(rhs.m_height), m_field(nullptr){
+    if (rhs.m_field == nullptr) return;
 
-    m_width = rhs.m_width;
+    m_field = new node{rhs.m_field->tp,nullptr};
+    node* cur = m_field;
+    node* src = rhs.m_field->next;
 
-    m_height = rhs.m_height;
-
-    m_field = nullptr;
-
-    for(node* n = rhs.m_field; n != nullptr; n = n->next){
-        m_field = new node{n->tp, n->next};
+    while(src != nullptr){
+        cur->next = new node{src->tp,nullptr};
+        cur = cur->next;
+        src = src->next;
     }
 }
 
