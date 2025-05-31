@@ -586,7 +586,7 @@ void piece_output(std::ostream& os, piece const& p){
 }
 
 std::ostream& operator<<(std::ostream& os, piece const& p){
-    if (p.side() == 0 || !pow_of_2(p.side()))
+    if (p.side() == 0 or !pow_of_2(p.side()))
         throw tetris_exception("operator<<: piece has invalid side");
 
     os << p.side() << " " << p.color() << " ";
@@ -870,7 +870,7 @@ bool tetris::const_iterator::operator!=(const const_iterator& rhs) const {
     return !(*this == rhs);
 }
 
-//tetris iterator functions
+//iterator functions
 tetris::iterator tetris::begin() {
     return iterator(m_field);
 }
@@ -886,3 +886,79 @@ tetris::const_iterator tetris::begin() const {
 tetris::const_iterator tetris::end() const {
     return const_iterator(nullptr);
 }
+
+//streams
+std::ostream& operator<<(std::ostream& os, tetris const& t){
+    os << t.score() << " " << t.width() << " " << t.height() << " ";
+
+    for (auto i = t.begin(); i != t.end(); ++i){
+        os << *i << "\n";
+    }
+
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, tetris& t){
+    skip(is);
+
+    int score;
+    if(c_is_int(is.peek())){
+        is >> score;
+    }
+    else{
+        throw tetris_exception("tetris operator>>: expected int");
+    }
+
+    skip(is);
+
+    int width;
+    if(c_is_int(is.peek())){
+        is >> width;
+        if(width == 0) throw tetris_exception("tetris operator>>: expected > 0");
+    }
+    else{
+        throw tetris_exception("tetris operator>>: expected int");
+    }
+
+    skip(is);
+
+    int height;
+    if(c_is_int(is.peek())){
+        is >> height;
+        if(height == 0) throw tetris_exception("tetris operator>>: expected > 0");
+    }
+    else{
+        throw tetris_exception("tetris operator>>: expected int");
+    }
+
+    t(width, height, score);
+
+    skip(is);
+
+    while(!c_is_int(is.peek())){
+        piece p();
+        is >> p;
+
+        int x, y;
+        if(c_is_int(is.peek())){
+            is >> x;
+        }
+        else{
+            throw tetris_exception("tetris operator>>: expected int");
+        }
+
+        if(c_is_int(is.peek())){
+            is >> y;
+            if(y < 0) throw tetris_exception("tetris operator>>: expected y >= 0");
+        }
+        else{
+            throw tetris_exception("tetris operator>>: expected int");
+        }
+
+        t.add(p);
+    }
+
+    return is;
+}
+
+
