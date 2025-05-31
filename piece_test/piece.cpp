@@ -453,6 +453,8 @@ std::istream& operator>>(std::istream& is, piece& p){
     int side;
     if(c_is_int(is.peek())){
         is >> side;
+        if(side > p.side())
+            throw tetris_exception("operator>>: side too much big");
     }
     else{
         throw tetris_exception("operator>>: expected int");
