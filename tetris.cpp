@@ -707,13 +707,7 @@ bool tetris::operator==(tetris const& rhs) const{
 
     node* n = rhs.m_field;
     node* m = m_field;
-
     for (;n != nullptr and m != nullptr;n = n->next, m = m->next) {
-/*
-        if ((n->tp.p == nullptr) != (m->tp.p == nullptr)) return false;
-        if (n->tp.p and *(n->tp.p) != *(m->tp.p)) return false;
-*/
-
         if(n->tp.p != m->tp.p) return false;
     }
 
@@ -792,7 +786,68 @@ void tetris::print_ascii_art(std::ostream& os) const {
     delete[] m_grid;
 }
 
-bool tetris::containment(piece const& p, int x, int y) const {
+/*bool tetris::containment(piece const& p, int x, int y) const{
+    if(y < 0) return false;
+
+    for (int j = y; j < m_height and y-j < p.side(); ++j){
+        for (int i = x; i < m_width and x-i < p.side(); ++i){
+            std::cout << i << ", " << j << std::endl;
+            if(p(i - x, j - y)){
+                if(i >= 0 and j >= 0 and i < m_width and j < m_height){
+
+                    for (const_iterator it = begin(); it != end(); ++it){
+                        for (int ty = it->y; ty < m_height and it->y-ty < it->p.side(); ++ty){
+                            for (int tx = it->x; tx < m_width and it->x - tx < it->p.side(); ++tx){
+                                //std::cout << tx << ", " << ty;
+                                if(it->p(tx - it->x, ty - it->y)){
+                                    if(it->x + tx == i and it->y + ty == j) return false;
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+                else return false;
+            }
+        }
+    }
+
+    return true;
+}*/
+
+bool tetris::containment(const piece& p, int x, int y) const {
+    if (y < 0) return false; // controlla che non si vada sopra o a sinistra
+
+    for (uint32_t dy = 0; dy < p.side(); ++dy) {
+        for (uint32_t dx = 0; dx < p.side(); ++dx) {
+            if (p(dx, dy)) {
+                int grid_x = x + dx;
+                int grid_y = y + dy;
+
+                // fuori dai limiti della griglia
+                if (grid_y < 0 || grid_y >= static_cast<int>(m_height)) {
+                    return false;
+                }
+
+                // controllo sovrapposizioni con pezzi già presenti
+                for (const_iterator it = begin(); it != end(); ++it) {
+                    for (uint32_t pd_y = 0; pd_y < it->p.side(); ++pd_y) {
+                        for (uint32_t pd_x = 0; pd_x < it->p.side(); ++pd_x) {
+                            if (it->p(pd_x, pd_y)) {
+                                int existing_x = it->x + pd_x;
+                                int existing_y = it->y + pd_y;
+                                if (existing_x == grid_x && existing_y == grid_y) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -813,77 +868,77 @@ void tetris::insert(piece const& p, int x){
 //iterator
 tetris::iterator::iterator(node* ptr) : m_ptr(ptr) {}
 
-tetris::iterator::reference tetris::iterator::operator*() {
+tetris::iterator::reference tetris::iterator::operator*(){
     return m_ptr->tp;
 }
 
-tetris::iterator::pointer tetris::iterator::operator->() {
+tetris::iterator::pointer tetris::iterator::operator->(){
     return &m_ptr->tp;
 }
 
-tetris::iterator& tetris::iterator::operator++() {
+tetris::iterator& tetris::iterator::operator++(){
     if (m_ptr) m_ptr = m_ptr->next;
     return *this;
 }
 
-tetris::iterator tetris::iterator::operator++(int) {
+tetris::iterator tetris::iterator::operator++(int){
     iterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
-bool tetris::iterator::operator==(const iterator& rhs) const {
+bool tetris::iterator::operator==(const iterator& rhs) const{
     return m_ptr == rhs.m_ptr;
 }
 
-bool tetris::iterator::operator!=(const iterator& rhs) const {
+bool tetris::iterator::operator!=(const iterator& rhs) const{
     return !(*this == rhs);
 }
 
 //const_iterator
-tetris::const_iterator::const_iterator(node* ptr) : m_ptr(ptr) {}
+tetris::const_iterator::const_iterator(node const* ptr) : m_ptr(ptr) {}
 
-tetris::const_iterator::reference tetris::const_iterator::operator*() const {
+tetris::const_iterator::reference tetris::const_iterator::operator*() const{
     return m_ptr->tp;
 }
 
-tetris::const_iterator::pointer tetris::const_iterator::operator->() const {
+tetris::const_iterator::pointer tetris::const_iterator::operator->() const{
     return &m_ptr->tp;
 }
 
-tetris::const_iterator& tetris::const_iterator::operator++() {
+tetris::const_iterator& tetris::const_iterator::operator++(){
     if (m_ptr) m_ptr = m_ptr->next;
     return *this;
 }
 
-tetris::const_iterator tetris::const_iterator::operator++(int) {
+tetris::const_iterator tetris::const_iterator::operator++(int){
     const_iterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
-bool tetris::const_iterator::operator==(const const_iterator& rhs) const {
+bool tetris::const_iterator::operator==(const_iterator const& rhs) const{
     return m_ptr == rhs.m_ptr;
 }
 
-bool tetris::const_iterator::operator!=(const const_iterator& rhs) const {
+bool tetris::const_iterator::operator!=(const_iterator const& rhs) const{
     return !(*this == rhs);
 }
 
 //iterator functions
-tetris::iterator tetris::begin() {
+tetris::iterator tetris::begin(){
     return iterator(m_field);
 }
 
-tetris::iterator tetris::end() {
+tetris::iterator tetris::end(){
     return iterator(nullptr);
 }
 
-tetris::const_iterator tetris::begin() const {
+tetris::const_iterator tetris::begin() const{
     return const_iterator(m_field);
 }
 
-tetris::const_iterator tetris::end() const {
+tetris::const_iterator tetris::end() const{
     return const_iterator(nullptr);
 }
 
@@ -892,7 +947,7 @@ std::ostream& operator<<(std::ostream& os, tetris const& t){
     os << t.score() << " " << t.width() << " " << t.height() << " ";
 
     for (auto i = t.begin(); i != t.end(); ++i){
-        os << *i << "\n";
+        os << i->p << "\n";
     }
 
     return os;
@@ -931,12 +986,13 @@ std::istream& operator>>(std::istream& is, tetris& t){
         throw tetris_exception("tetris operator>>: expected int");
     }
 
-    t(width, height, score);
+    tetris t1(width, height, score);
+    t = t1;
 
     skip(is);
 
     while(!c_is_int(is.peek())){
-        piece p();
+        piece p;
         is >> p;
 
         int x, y;
@@ -955,10 +1011,8 @@ std::istream& operator>>(std::istream& is, tetris& t){
             throw tetris_exception("tetris operator>>: expected int");
         }
 
-        t.add(p);
+        t.add(p, x, y);
     }
 
     return is;
 }
-
-
