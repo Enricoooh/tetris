@@ -89,12 +89,14 @@ piece& piece::operator=(piece const& rhs) {
 
         m_color = rhs.color();
 
-        for (uint32_t i=0;i < m_side;++i){
-            delete[] m_grid[i];
-        }
-        delete[] m_grid;
+        if(m_grid != nullptr){
+            for (uint32_t i=0;i < m_side;++i){
+                delete[] m_grid[i];
+            }
+            delete[] m_grid;
 
-        m_grid = nullptr;
+            m_grid = nullptr;
+        }
 
         m_grid = new bool*[side()];
         for (uint32_t i=0; i < side(); ++i){
@@ -379,10 +381,7 @@ void GRID(std::istream& is, piece& p){
             }
         }
         else{
-            if(is.peek() == -1)
-                break;
-            else
-                throw tetris_exception("piece GRID: expeted ( or [ in input");
+            throw tetris_exception("piece GRID: expeted ( or [ in input");
         }
     }
 
@@ -416,11 +415,11 @@ std::istream& operator>>(std::istream& is, piece& p){
     uint32_t side;
     if(c_is_int(is.peek())){
         is >> side;
-        if(side > p.side() or side == 0 or !pow_of_2(side))
+        if(!pow_of_2(side))
             throw tetris_exception("piece operator>>: side is too big");
     }
     else{
-        throw tetris_exception("piece operator>>: expected int");
+        throw tetris_exception("piece operator>>: expected int ");
     }
 
     skip(is);
@@ -493,6 +492,9 @@ std::istream& operator>>(std::istream& is, piece& p){
 //output parser
 
 void piece_output(std::ostream& os, piece const& p){
+
+    if(p.empty()) { os << "[]"; return; }
+    if(p.full()) { os << "()"; return; }
 
     if(p.side() == 1){
         if(p.full() == true)
@@ -586,9 +588,6 @@ void piece_output(std::ostream& os, piece const& p){
 }
 
 std::ostream& operator<<(std::ostream& os, piece const& p){
-    if (p.side() == 0 or !pow_of_2(p.side()))
-        throw tetris_exception("operator<<: piece has invalid side");
-
     os << p.side() << " " << p.color() << " ";
 
     piece_output(os, p);
@@ -791,14 +790,12 @@ void tetris::print_ascii_art(std::ostream& os) const {
 
     for (int j = y; j < m_height and y-j < p.side(); ++j){
         for (int i = x; i < m_width and x-i < p.side(); ++i){
-            std::cout << i << ", " << j << std::endl;
             if(p(i - x, j - y)){
                 if(i >= 0 and j >= 0 and i < m_width and j < m_height){
 
                     for (const_iterator it = begin(); it != end(); ++it){
                         for (int ty = it->y; ty < m_height and it->y-ty < it->p.side(); ++ty){
                             for (int tx = it->x; tx < m_width and it->x - tx < it->p.side(); ++tx){
-                                //std::cout << tx << ", " << ty;
                                 if(it->p(tx - it->x, ty - it->y)){
                                     if(it->x + tx == i and it->y + ty == j) return false;
                                 }
@@ -969,7 +966,7 @@ std::istream& operator>>(std::istream& is, tetris& t){
     int width;
     if(c_is_int(is.peek())){
         is >> width;
-        if(width == 0) throw tetris_exception("tetris operator>>: expected > 0");
+        if(width == 0) throw tetris_exception("tetris operator>>: expected width > 0");
     }
     else{
         throw tetris_exception("tetris operator>>: expected int");
@@ -980,7 +977,7 @@ std::istream& operator>>(std::istream& is, tetris& t){
     int height;
     if(c_is_int(is.peek())){
         is >> height;
-        if(height == 0) throw tetris_exception("tetris operator>>: expected > 0");
+        if(height == 0) throw tetris_exception("tetris operator>>: expected height > 0");
     }
     else{
         throw tetris_exception("tetris operator>>: expected int");
@@ -991,27 +988,40 @@ std::istream& operator>>(std::istream& is, tetris& t){
 
     skip(is);
 
-    while(!c_is_int(is.peek())){
+    while(c_is_int(is.peek())){
         piece p;
         is >> p;
+        skip(is);
 
         int x, y;
+
+
         if(c_is_int(is.peek())){
             is >> x;
         }
         else{
-            throw tetris_exception("tetris operator>>: expected int");
+            if(is.peek() == '-'){
+                is >> x;
+            }
+            else
+                throw tetris_exception("tetris operator>>: x must be int");
         }
+
+        skip(is);
 
         if(c_is_int(is.peek())){
             is >> y;
-            if(y < 0) throw tetris_exception("tetris operator>>: expected y >= 0");
         }
         else{
-            throw tetris_exception("tetris operator>>: expected int");
+            if(is.peek() == '-'){
+                throw tetris_exception("tetris operator>>: expected y >= 0");
+            }
+            else
+                throw tetris_exception("tetris operator>>: y must be int");
         }
 
         t.add(p, x, y);
+        skip(is);
     }
 
     return is;
