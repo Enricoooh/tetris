@@ -7,6 +7,9 @@ int main() {
     try{
         int dim = 128;
         piece p(dim, 26);
+        piece p10;
+        std::cout << p10;
+        std::cout << p;
 
         //std::cout << "em: " << p.empty() << std::endl;
 
@@ -48,9 +51,9 @@ int main() {
         /*piece p1 = std::move(p);
         p1.print_ascii_art(std::cout);*/
 
-        piece p2(8, 20);
+/*        piece p2(8, 20);
 
-        p2(0, 0) = false;
+        p2(0, 0) = false;*/
 
         /*try{
             p2(0,0) = true;
@@ -66,16 +69,19 @@ int main() {
 
         std::ifstream inputFile("input.txt");
 
-        inputFile >> p;
-        std::cout << "aaaaa";
-        p.print_ascii_art(std::cout);
-        std::cout << "bbbbbb";
-        p.cut_row(16); p.print_ascii_art(std::cout);
+        //inputFile >> p;
+        //std::cout << p << std::endl;
+        //p.print_ascii_art(std::cout);
+        //p.cut_row(16); p.print_ascii_art(std::cout);
         //p.cut_row(1); p.print_ascii_art(std::cout);
         //p.cut_row(2);
         //p(0, 0) = true;
         //p.print_ascii_art(std::cout);
-
+        std::cout << "p10:" << std::endl;
+        inputFile >> p10;
+        std::cout << "assegnato";
+        std::cout << p10;
+        p10.print_ascii_art(std::cout);
     /*    std::cout << "empty: " << p.empty(3,2,1);
         std::cout << "full: " << p.full(3,2,1);*/
 
