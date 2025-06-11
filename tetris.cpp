@@ -322,11 +322,12 @@ void grid_all(piece& p, bool value){
     }
 }
 
-void GRID(std::istream& is, piece& p){
+bool GRID(std::istream& is, piece& p){
     if(p.side() < 2 or !pow_of_2(p.side())) {
         throw tetris_exception("piece GRID: piece in parser too big");
     }
 
+    bool r = true;
     char c;
     skip(is);
 
@@ -353,7 +354,7 @@ void GRID(std::istream& is, piece& p){
 
             }
             else{
-                GRID(is, pieces[i]);
+                if(!GRID(is, pieces[i])) r = false;
 
                 if(is.peek() == ')'){
                     is >> c;
@@ -366,6 +367,8 @@ void GRID(std::istream& is, piece& p){
         }
 
         else if(is.peek() == '['){
+            std::cout << "r " << " false";
+            r = false;
             is >> c;
             skip(is);
 
@@ -407,6 +410,8 @@ void GRID(std::istream& is, piece& p){
     }
 
     skip(is);
+
+    return r;
 }
 
 std::istream& operator>>(std::istream& is, piece& p){
@@ -455,7 +460,8 @@ std::istream& operator>>(std::istream& is, piece& p){
             grid_all(p, true);
         }
         else{
-            GRID(is, p);
+            if(GRID(is, p))
+                throw tetris_exception("piece operator>>: () is the only full piece format accepted");
 
             if(is.peek() == ')'){
                 is >> c;
@@ -785,7 +791,7 @@ void tetris::print_ascii_art(std::ostream& os) const {
     delete[] m_grid;
 }
 
-/*bool tetris::containment(piece const& p, int x, int y) const{
+bool tetris::containment(piece const& p, int x, int y) const{
     if(y < 0) return false;
 
     for (int j = y; j < m_height and y-j < p.side(); ++j){
@@ -811,9 +817,9 @@ void tetris::print_ascii_art(std::ostream& os) const {
     }
 
     return true;
-}*/
+}
 
-bool tetris::containment(const piece& p, int x, int y) const {
+/*bool tetris::containment(const piece& p, int x, int y) const {
     if (y < 0) return false; // controlla che non si vada sopra o a sinistra
 
     for (uint32_t dy = 0; dy < p.side(); ++dy) {
@@ -846,7 +852,7 @@ bool tetris::containment(const piece& p, int x, int y) const {
     }
 
     return true;
-}
+}*/
 
 void tetris::add(piece const& p, int x, int y){
     if (!containment(p, x, y)) {
@@ -944,7 +950,7 @@ std::ostream& operator<<(std::ostream& os, tetris const& t){
     os << t.score() << " " << t.width() << " " << t.height() << " ";
 
     for (auto i = t.begin(); i != t.end(); ++i){
-        os << i->p << "\n";
+        os << i->p << " " << i->x << " " << i->y << "\n";
     }
 
     return os;
