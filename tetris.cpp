@@ -340,6 +340,7 @@ bool GRID(std::istream& is, piece& p){
         piece(side_2, p.color())   // br
     };
 
+    bool all_true = false;
     for(int i=0;i < 4;++i){
         if(is.peek() == '('){
             is >> c;
@@ -348,6 +349,8 @@ bool GRID(std::istream& is, piece& p){
             if(is.peek() == ')'){
                 is >> c;
                 skip(is);
+
+                if(i == 3 and r == true) all_true = true;
 
                 //pieces[i] all true;
                 grid_all(pieces[i], true);
@@ -367,7 +370,6 @@ bool GRID(std::istream& is, piece& p){
         }
 
         else if(is.peek() == '['){
-            std::cout << "r " << " false";
             r = false;
             is >> c;
             skip(is);
@@ -409,6 +411,7 @@ bool GRID(std::istream& is, piece& p){
         throw tetris_exception("piece GRID: error in matrix formation: " + e.what());
     }
 
+    if(r == true and all_true == true) throw tetris_exception("piece GRID 2: () is the only full piece accepted");
     skip(is);
 
     return r;
@@ -424,7 +427,7 @@ std::istream& operator>>(std::istream& is, piece& p){
             throw tetris_exception("piece operator>>: side is too big");
     }
     else{
-        throw tetris_exception("piece operator>>: expected int ");
+        throw tetris_exception("piece operator>> 1: expected int ");
     }
 
     skip(is);
@@ -436,7 +439,7 @@ std::istream& operator>>(std::istream& is, piece& p){
             throw tetris_exception("piece operator>>: color must be > 0");
     }
     else{
-        throw tetris_exception("piece operator>>: expected int");
+        throw tetris_exception("piece operator>> 2: expected int");
     }
 
 
@@ -639,7 +642,7 @@ tetris::tetris(tetris&& rhs){
     rhs.m_field = nullptr;
 }
 
-tetris::~tetris() {
+tetris::~tetris(){
     node* n = m_field;
     while(n != nullptr){
         node* temp = n;
@@ -712,8 +715,24 @@ bool tetris::operator==(tetris const& rhs) const{
 
     node* n = rhs.m_field;
     node* m = m_field;
-    for (;n != nullptr and m != nullptr;n = n->next, m = m->next) {
+/*    for (;n != nullptr and m != nullptr;n = n->next, m = m->next) {
         if(n->tp.p != m->tp.p) return false;
+    }*/
+
+    for(;m != nullptr; m = m->next){
+        bool found = false;
+
+        int i=0;
+        for(n = rhs.m_field;n != nullptr; n = n->next){
+            if(n->tp.p == m->tp.p){
+
+                if(n->tp.x == m->tp.x and n->tp.y == m->tp.y){
+                    found = true;
+                }
+            }
+        }
+        if(found == false) return false;
+
     }
 
     if (n != nullptr or m != nullptr)
@@ -750,9 +769,13 @@ void tetris::print_ascii_art(std::ostream& os) const {
         for (uint32_t dy = 0; dy < s; ++dy) {
             for (uint32_t dx = 0; dx < s; ++dx) {
                 if (n->tp.p(dy, dx)) {
-                    uint32_t gx = n->tp.x + dx;
-                    uint32_t gy = n->tp.y + dy;
-                    if (gx < m_width && gy < m_height) {
+
+                    int gx = static_cast<int>(n->tp.x + dx);
+                    int gy = static_cast<int>(n->tp.y - dy);
+
+                    // Verifica che gx e gy siano dentro la griglia
+                    if (gx >= 0 && gx < static_cast<int>(m_width) &&
+                        gy >= 0 && gy < static_cast<int>(m_height)) {
                         m_grid[gy][gx].value = true;
                         m_grid[gy][gx].color = n->tp.p.color();
                     }
@@ -762,36 +785,38 @@ void tetris::print_ascii_art(std::ostream& os) const {
     }
 
     // Stampa cornice superiore
-    os << "-";
-    for (uint32_t i = 0; i < m_width + 1; ++i)
-        os << "-";
-    os << "\n";
+    os << '+';
+    for (uint32_t i = 0; i < m_width; ++i)
+        os << '-';
+    os << "+\n";
 
-    // Stampa contenuto riga per riga
-    for (uint32_t y = 0; y < m_height; ++y) {
-        os << "|";
+    // Stampa contenuto riga per riga (dall’alto verso il basso)
+    for (int y = 0; y < m_height; ++y) {
+        os << '|';
         for (uint32_t x = 0; x < m_width; ++x) {
-            if (m_grid[y][x].value)
+            os << x << y;
+            if (m_grid[y][x].value) {
                 os << "\033[48;5;" << int(m_grid[y][x].color) << "m" << ' ' << "\033[m";
-            else
+            } else {
                 os << ' ';
+            }
         }
         os << "|\n";
     }
 
     // Stampa cornice inferiore
-    os << "-";
-    for (uint32_t i = 0; i < m_width + 1; ++i)
-        os << "-";
-    os << "\n";
+    os << '+';
+    for (uint32_t i = 0; i < m_width; ++i)
+        os << '-';
+    os << "+\n";
 
-    // Cleanup
+    // Cleanup memoria
     for (uint32_t y = 0; y < m_height; ++y)
         delete[] m_grid[y];
     delete[] m_grid;
 }
 
-bool tetris::containment(piece const& p, int x, int y) const{
+/*bool tetris::containment(piece const& p, int x, int y) const{
     if(y < 0) return false;
 
     for (int j = y; j < m_height and y-j < p.side(); ++j){
@@ -817,16 +842,16 @@ bool tetris::containment(piece const& p, int x, int y) const{
     }
 
     return true;
-}
+}*/
 
-/*bool tetris::containment(const piece& p, int x, int y) const {
+bool tetris::containment(const piece& p, int x, int y) const {
     if (y < 0) return false; // controlla che non si vada sopra o a sinistra
 
-    for (uint32_t dy = 0; dy < p.side(); ++dy) {
+/*    for (uint32_t dy = 0; dy < p.side(); ++dy) {
         for (uint32_t dx = 0; dx < p.side(); ++dx) {
             if (p(dx, dy)) {
-                int grid_x = x + dx;
-                int grid_y = y + dy;
+                int grid_x = y + dx;
+                int grid_y = x + dy;
 
                 // fuori dai limiti della griglia
                 if (grid_y < 0 || grid_y >= static_cast<int>(m_height)) {
@@ -838,8 +863,8 @@ bool tetris::containment(piece const& p, int x, int y) const{
                     for (uint32_t pd_y = 0; pd_y < it->p.side(); ++pd_y) {
                         for (uint32_t pd_x = 0; pd_x < it->p.side(); ++pd_x) {
                             if (it->p(pd_x, pd_y)) {
-                                int existing_x = it->x + pd_x;
-                                int existing_y = it->y + pd_y;
+                                int existing_x = it->y + pd_x;
+                                int existing_y = it->x + pd_y;
                                 if (existing_x == grid_x && existing_y == grid_y) {
                                     return false;
                                 }
@@ -849,10 +874,10 @@ bool tetris::containment(piece const& p, int x, int y) const{
                 }
             }
         }
-    }
+    }*/
 
     return true;
-}*/
+}
 
 void tetris::add(piece const& p, int x, int y){
     if (!containment(p, x, y)) {
@@ -860,8 +885,17 @@ void tetris::add(piece const& p, int x, int y){
     }
 
     tetris_piece tp{p, x, y};
+
     node* n = new node{tp, m_field};
     m_field = n;
+
+/*    if(m_field == nullptr) m_field = new node{tp, nullptr};
+    else{
+        node* n = m_field;
+        for(;n->next != nullptr;n = n->next);
+        n->next = new node{tp, nullptr};
+    }*/
+
 }
 
 void tetris::insert(piece const& p, int x){
@@ -947,7 +981,7 @@ tetris::const_iterator tetris::end() const{
 
 //streams
 std::ostream& operator<<(std::ostream& os, tetris const& t){
-    os << t.score() << " " << t.width() << " " << t.height() << " ";
+    os << t.score() << " " << t.width() << " " << t.height() << "\n";
 
     for (auto i = t.begin(); i != t.end(); ++i){
         os << i->p << " " << i->x << " " << i->y << "\n";
@@ -955,6 +989,25 @@ std::ostream& operator<<(std::ostream& os, tetris const& t){
 
     return os;
 }
+
+/*std::ostream& operator<<(std::ostream& os, tetris const& t) {
+    os << t.score() << " " << t.width() << " " << t.height() << "\n";
+
+    const int MAX = 100;
+    tetris_piece pieces[MAX];
+
+    int count = 0;
+    for (auto it = t.begin(); it != t.end(); ++it) {
+        if (count >= MAX) break;
+        pieces[count++] = *it;
+    }
+
+    for (int i = count - 1; i >= 0; --i) {
+        os << pieces[i].p << " " << pieces[i].x << " " << pieces[i].y << "\n";
+    }
+
+    return os;
+}*/
 
 std::istream& operator>>(std::istream& is, tetris& t){
     skip(is);
@@ -994,13 +1047,12 @@ std::istream& operator>>(std::istream& is, tetris& t){
 
     skip(is);
 
-    while(c_is_int(is.peek())){
+    while(is.peek() != -1) {
         piece p;
         is >> p;
         skip(is);
 
         int x, y;
-
 
         if(c_is_int(is.peek())){
             is >> x;
@@ -1025,6 +1077,7 @@ std::istream& operator>>(std::istream& is, tetris& t){
             else
                 throw tetris_exception("tetris operator>>: y must be int");
         }
+
 
         t.add(p, x, y);
         skip(is);
