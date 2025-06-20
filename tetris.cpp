@@ -847,7 +847,7 @@ void tetris::print_ascii_art(std::ostream& os) const {
 bool tetris::containment(const piece& p, int x, int y) const {
     if (y < 0) return false; // controlla che non si vada sopra o a sinistra
 
-/*    for (uint32_t dy = 0; dy < p.side(); ++dy) {
+    for (uint32_t dy = 0; dy < p.side(); ++dy) {
         for (uint32_t dx = 0; dx < p.side(); ++dx) {
             if (p(dx, dy)) {
                 int grid_x = y + dx;
@@ -874,7 +874,7 @@ bool tetris::containment(const piece& p, int x, int y) const {
                 }
             }
         }
-    }*/
+    }
 
     return true;
 }
