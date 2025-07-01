@@ -341,6 +341,7 @@ bool GRID(std::istream& is, piece& p){
     };
 
     bool all_true = false;
+    bool all_false[4] = {false, false, false, false};
     for(int i=0;i < 4;++i){
         if(is.peek() == '('){
             is >> c;
@@ -378,6 +379,7 @@ bool GRID(std::istream& is, piece& p){
                 is >> c;
                 skip(is);
                 //pieces[i] all false;
+                all_false[i] = true;
 
                 grid_all(pieces[i], false);
             }
@@ -389,6 +391,14 @@ bool GRID(std::istream& is, piece& p){
             throw tetris_exception("piece GRID: expeted ( or [ in input");
         }
     }
+
+    int check_false = 0;
+    for(int i=0;i < 4;i++){
+        if(all_false[i]) check_false++;
+    }
+
+    if(check_false == 4) throw tetris_exception("piece GRID: [] is the only full piece format accepted");
+
 
     try{
         //piece formed by the subpieces
@@ -847,7 +857,7 @@ void tetris::print_ascii_art(std::ostream& os) const {
 bool tetris::containment(const piece& p, int x, int y) const {
     if (y < 0) return false; // controlla che non si vada sopra o a sinistra
 
-    for (uint32_t dy = 0; dy < p.side(); ++dy) {
+    /*for (uint32_t dy = 0; dy < p.side(); ++dy) {
         for (uint32_t dx = 0; dx < p.side(); ++dx) {
             if (p(dx, dy)) {
                 int grid_x = y + dx;
@@ -874,7 +884,7 @@ bool tetris::containment(const piece& p, int x, int y) const {
                 }
             }
         }
-    }
+    }*/
 
     return true;
 }
