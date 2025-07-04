@@ -74,7 +74,7 @@ piece::piece(piece&& rhs) {
 }
 
 piece::~piece() {
-    if(m_grid){
+    if(m_grid != nullptr){
         for (uint32_t i=0;i < m_side;++i){
             delete[] m_grid[i];
         }
@@ -89,14 +89,14 @@ piece& piece::operator=(piece const& rhs) {
 
         m_color = rhs.color();
 
-        if(m_grid != nullptr){
+/*        if(m_grid != nullptr){
             for (uint32_t i=0;i < m_side;++i){
                 delete[] m_grid[i];
             }
             delete[] m_grid;
 
             m_grid = nullptr;
-        }
+        }*/
 
         m_grid = new bool*[side()];
         for (uint32_t i=0; i < side(); ++i){
@@ -265,7 +265,7 @@ void piece::print_ascii_art(std::ostream& os) const {
         uint32_t j;
         for(j=0;j < side();++j){
             if (m_grid[i][j]){
-                os << i<<j;
+                //os << i<<j;
                 os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
             }
             else
@@ -313,7 +313,6 @@ void skip(std::istream& is){
 }
 
 bool c_is_int(char c){
-    std::cout << (int)c << std::endl;
     return c >= 48 and c <= 57;
 }
 
@@ -462,7 +461,6 @@ std::istream& operator>>(std::istream& is, piece& p){
     skip(is);
 
     char c;
-    skip(is);
 
     if(is.peek() == '('){
         is >> c;
@@ -832,11 +830,8 @@ bool tetris::containment(const piece& p, int x, int y) const {
     for(int i=0;i < side;++i){
         for(int j=0;j < side;++j){
             if(p(j, i)){    //invertite rispetto a piece operator()
-                std::cout << "i: " << i << " j: "<<j<<" ";
                 int x_real = i + x;
                 int y_real = j + y - (side-1);
-                std::cout << "x: "<<x_real<< "y:"<<y_real<<" ";
-                std::cout << "width: "<<width()<<"height: "<<height()<<std::endl;
                 if (y_real < 0 or x_real >= static_cast<int>(width()) or y_real > static_cast<int>(height()) or x_real < 0) {
                     return false;
                 }
@@ -892,25 +887,105 @@ void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
     //inserimento piece
     int y;
-    for(y = height()-1;y >= 0;++y){
+    for(y = height()-1;y >= 0;--y){
+
         bool occupied = false;
         for(auto it=begin();it != end();it++){
-            if(p(y, x)){
-                occupied=true;
-                break;
+            int y_piece = y - it->y + (it->p.side()-1);
+            int x_piece = x - it->x;
+
+            if(y_piece >= 0 and x_piece >= 0 and y_piece < it->p.side() and x_piece < it->p.side()){
+                if(it->p(y_piece, x_piece)){
+                    occupied=true;
+                    break;
+                }
             }
+
         }
         if(occupied == false){
             break;
         }
     }
+
     if(y < 0){ throw tetris_exception("GAME OVER"); }
 
     add(p, x, y);
 
     //cut rows
+    for(int row = 0;row < height();++row){
+        bool is_full = false;
+        do{
+            bool* last_row = new bool[m_width]();
 
-    
+            //controllo ultima riga tutto pieno
+            for(auto it=begin();it != end();it++){
+                int side = it->p.side();
+                for(int i=0;i < side;++i){
+                    for(int j=0;j < side;++j){
+                        int y_real = j + it->y - (side-1);
+                        int x_real = i + it->x;
+
+                        if(y_real >= 0 and x_real >= 0 and y_real < height() and x_real < width() and
+                            j >= 0 and i >= 0 and j < side and i < side){
+                            if(it->p(j, i) and y_real == row){
+                                last_row[x_real] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            is_full = true;
+            for(int i=0;i<width() - 1;++i){
+                if(!last_row[i]) is_full = false;
+            }
+
+            if(is_full) {
+                for(auto it=begin();it != end();it++){
+
+                    bool cutted = false;
+                    int side = it->p.side();
+                    for(int i=0;i < side;++i){
+                        for(int j=0;j < side;++j){
+                            if(!cutted){
+                                int y_real = j + it->y - (side-1);
+                                int x_real = i + it->x;
+
+                                if(y_real == row){
+                                    it->p.cut_row(j);
+                                    cutted = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            delete[] last_row;
+
+            //delete empty pieces
+            node* prev = nullptr;
+            for(auto n=m_field;n != nullptr;n=n->next){
+
+                if(n->tp.p.empty()){
+                    //elimina piece
+                    if(n == m_field){
+                        node* tmp = m_field;
+                        m_field = m_field->next;
+                        delete tmp;
+                    }
+
+                    prev->next = n->next;
+                    delete n;
+
+                    n = prev;
+                }
+                prev = n;
+            }
+        }while(is_full);
+    }
+
 }
 
 //iterator
