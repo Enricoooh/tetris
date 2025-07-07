@@ -769,6 +769,9 @@ uint32_t tetris::height() const{ return m_height; }
 //game operations
 
 void tetris::print_ascii_art(std::ostream& os) const {
+
+    os << "SCORE: " << score() << "\n";
+
     struct cell {
         bool value = false;
         uint8_t color = 0;
@@ -905,17 +908,16 @@ void tetris::add(piece const& p, int x, int y){
 
 void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
+
     //inserimento piece
-
     int y;
-    for(y = p.side() - 1;y < 0 or containment(p, x, y);++y){}
-    if(y < 0){ throw tetris_exception("GAME OVER"); }
-    y--;
-    std::cout << "esce ciclo y:" << y;
-
-    if(y < 0){ throw tetris_exception("GAME OVER"); }
-
-    add(p, x, y);
+    try{
+        for(y = p.side() - 1;containment(p, x, y);++y){}
+        y--;
+        add(p, x, y);
+    }catch(tetris_exception e){
+        throw tetris_exception("GAME OVER");
+    }
 
     print_ascii_art(std::cout);
     //cut rows
@@ -967,6 +969,8 @@ void tetris::insert(piece const& p, int x){
 
                     }
                 }
+
+                m_score += width();
             }
 
             delete[] last_row;
