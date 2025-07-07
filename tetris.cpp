@@ -469,11 +469,11 @@ std::istream& operator>>(std::istream& is, piece& p){
         if(is.peek() == ')'){
             is >> c;
             skip(is);
-
             //pieces[i] all true;
             grid_all(p, true);
         }
         else{
+
             if(GRID(is, p))
                 throw tetris_exception("piece operator>>: () is the only full piece format accepted");
 
@@ -830,33 +830,48 @@ bool tetris::containment(const piece& p, int x, int y) const {
     for(int i=0;i < side;++i){
         for(int j=0;j < side;++j){
             if(p(j, i)){    //invertite rispetto a piece operator()
+                /*std::cout << "i:" << i << " j:"<<j<<"\n";*/
                 int x_real = i + x;
                 int y_real = j + y - (side-1);
-                if (y_real < 0 or x_real >= static_cast<int>(width()) or y_real > static_cast<int>(height()) or x_real < 0) {
+
+                if (y_real < 0 or x_real >= static_cast<int>(width()) or y_real >= static_cast<int>(height()) or x_real < 0) {
+                    std::cout << "escequi";
                     return false;
+
                 }
 
                 for(auto it = begin(); it != end(); it++){
                     int it_side = it->p.side();
-
+                    //it->p.print_ascii_art(std::cout);
                     for(int it_i=0;it_i < it_side;++it_i){
                         for(int it_j=0;it_j < it_side;++it_j){
+                            //std::cout << it->p(it_j, it_i);
                             if(it->p(it_j, it_i)){  //invertite rispetto a piece operator()
+
                                 int it_x_real = it_i + it->x;
+
                                 int it_y_real = it_j + it->y - (it_side-1);
 
                                 if(it_y_real == y_real and it_x_real == x_real){
+                                    std::cout << "it_y_real="<<it_j<<"+"<<it->y<<"-"<<it_side<<"-1 = "<<it_y_real<<"\n";
+                                    std::cout << "y_real="<<j<<"+"<<y<<"-"<<side<<"-1\n";
+                                    std::cout << "\nx_real: " << x_real << " y_real: " << y_real;
+                                    std::cout << "\ni: " << i << " j: " << j;
+                                    std::cout << " es" << "\n";
+                                    std::cout << "containment y:" << y << " ";
                                     return false;
                                 }
                             }
 
                         }
+                        //std::cout << "\n";
                     }
                 }
             }
         }
     }
 
+    /*std::cout << "y: " << y;*/
     return true;
 }
 
@@ -886,31 +901,20 @@ void tetris::add(piece const& p, int x, int y){
 void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
     //inserimento piece
+
     int y;
-    for(y = height()-1;y >= 0;--y){
-
-        bool occupied = false;
-        for(auto it=begin();it != end();it++){
-            int y_piece = y - it->y + (it->p.side()-1);
-            int x_piece = x - it->x;
-
-            if(y_piece >= 0 and x_piece >= 0 and y_piece < it->p.side() and x_piece < it->p.side()){
-                if(it->p(y_piece, x_piece)){
-                    occupied=true;
-                    break;
-                }
-            }
-
-        }
-        if(occupied == false){
-            break;
-        }
+    for(y = p.side() - 1;containment(p, x, y);++y){
+        std::cout << "y: "<<y;
     }
+
+    y--;
+    std::cout << "esce ciclo y:" << y;
 
     if(y < 0){ throw tetris_exception("GAME OVER"); }
 
     add(p, x, y);
 
+    print_ascii_art(std::cout);
     //cut rows
     for(int row = 0;row < height();++row){
         bool is_full = false;
@@ -966,22 +970,25 @@ void tetris::insert(piece const& p, int x){
 
             //delete empty pieces
             node* prev = nullptr;
-            for(auto n=m_field;n != nullptr;n=n->next){
+            node* curr = m_field;
 
-                if(n->tp.p.empty()){
-                    //elimina piece
-                    if(n == m_field){
-                        node* tmp = m_field;
-                        m_field = m_field->next;
-                        delete tmp;
+            while (curr!=nullptr){
+                if(curr->tp.p.empty()){
+                    node* to_delete=curr;
+
+                    if(curr == m_field){
+                        m_field = curr->next;
+                        curr = m_field;
+                    }else{
+                        prev->next = curr->next;
+                        curr = curr->next;
                     }
 
-                    prev->next = n->next;
-                    delete n;
-
-                    n = prev;
+                    delete to_delete;
+                }else{
+                    prev = curr;
+                    curr = curr->next;
                 }
-                prev = n;
             }
         }while(is_full);
     }
