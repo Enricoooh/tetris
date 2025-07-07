@@ -64,7 +64,7 @@ piece::piece(piece const& rhs) {
     }
 }
 
-piece::piece(piece&& rhs) {
+piece::piece(piece&& rhs){
     m_side = rhs.side();
 
     m_color = rhs.color();
@@ -83,7 +83,7 @@ piece::~piece() {
 }
 
 //assignment operators
-piece& piece::operator=(piece const& rhs) {
+piece& piece::operator=(piece const& rhs){
     if(this != &rhs){
         m_side = rhs.side();
 
@@ -119,10 +119,12 @@ piece& piece::operator=(piece&& rhs) {
 
         m_color = rhs.color();
 
-        for (uint32_t i=0;i < m_side;++i) {
-            delete[] m_grid[i];
+        if(m_grid != nullptr){
+            for (uint32_t i=0;i < m_side;++i) {
+                delete[] m_grid[i];
+            }
+            delete[] m_grid;
         }
-        delete[] m_grid;
 
         m_grid = rhs.m_grid;
         rhs.m_grid = nullptr;
@@ -712,6 +714,9 @@ tetris& tetris::operator=(tetris&& rhs){
 
         m_field = rhs.m_field;
         rhs.m_field = nullptr;
+
+        rhs.m_width = 0;
+        rhs.m_height = 0;
     }
     return *this;
 }
@@ -824,7 +829,7 @@ void tetris::print_ascii_art(std::ostream& os) const {
 bool tetris::containment(const piece& p, int x, int y) const {
     if (y < 0) return false; // controlla che non si vada sopra o a sinistra
 
-    int side = (int)p.side();
+    int side = static_cast<int>(p.side());
 
     //i: x, m_width  j: y, m_height
     for(int i=0;i < side;++i){
@@ -903,10 +908,8 @@ void tetris::insert(piece const& p, int x){
     //inserimento piece
 
     int y;
-    for(y = p.side() - 1;containment(p, x, y);++y){
-        std::cout << "y: "<<y;
-    }
-
+    for(y = p.side() - 1;y < 0 or containment(p, x, y);++y){}
+    if(y < 0){ throw tetris_exception("GAME OVER"); }
     y--;
     std::cout << "esce ciclo y:" << y;
 
