@@ -85,18 +85,18 @@ piece::~piece() {
 //assignment operators
 piece& piece::operator=(piece const& rhs){
     if(this != &rhs){
-        m_side = rhs.side();
-
-        m_color = rhs.color();
-
-/*        if(m_grid != nullptr){
+        if(m_grid != nullptr){
             for (uint32_t i=0;i < m_side;++i){
                 delete[] m_grid[i];
             }
             delete[] m_grid;
 
             m_grid = nullptr;
-        }*/
+        }
+
+        m_side = rhs.side();
+
+        m_color = rhs.color();
 
         m_grid = new bool*[side()];
         for (uint32_t i=0; i < side(); ++i){
