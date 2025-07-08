@@ -838,48 +838,35 @@ bool tetris::containment(const piece& p, int x, int y) const {
     for(int i=0;i < side;++i){
         for(int j=0;j < side;++j){
             if(p(j, i)){    //invertite rispetto a piece operator()
-                /*std::cout << "i:" << i << " j:"<<j<<"\n";*/
                 int x_real = i + x;
                 int y_real = j + y - (side-1);
 
                 if (y_real < 0 or x_real >= static_cast<int>(width()) or y_real >= static_cast<int>(height()) or x_real < 0) {
-                    std::cout << "escequi";
                     return false;
 
                 }
 
                 for(auto it = begin(); it != end(); it++){
                     int it_side = it->p.side();
-                    //it->p.print_ascii_art(std::cout);
                     for(int it_i=0;it_i < it_side;++it_i){
                         for(int it_j=0;it_j < it_side;++it_j){
-                            //std::cout << it->p(it_j, it_i);
-                            if(it->p(it_j, it_i)){  //invertite rispetto a piece operator()
+                            if(it->p != p and it->p(it_j, it_i)){  //invertite rispetto a piece operator()
 
                                 int it_x_real = it_i + it->x;
 
                                 int it_y_real = it_j + it->y - (it_side-1);
 
                                 if(it_y_real == y_real and it_x_real == x_real){
-                                    std::cout << "it_y_real="<<it_j<<"+"<<it->y<<"-"<<it_side<<"-1 = "<<it_y_real<<"\n";
-                                    std::cout << "y_real="<<j<<"+"<<y<<"-"<<side<<"-1\n";
-                                    std::cout << "\nx_real: " << x_real << " y_real: " << y_real;
-                                    std::cout << "\ni: " << i << " j: " << j;
-                                    std::cout << " es" << "\n";
-                                    std::cout << "containment y:" << y << " ";
                                     return false;
                                 }
                             }
 
                         }
-                        //std::cout << "\n";
                     }
                 }
             }
         }
     }
-
-    /*std::cout << "y: " << y;*/
     return true;
 }
 
@@ -919,7 +906,6 @@ void tetris::insert(piece const& p, int x){
         throw tetris_exception("GAME OVER");
     }
 
-    print_ascii_art(std::cout);
     //cut rows
     for(int row = 0;row < height();++row){
         bool is_full = false;
@@ -997,6 +983,21 @@ void tetris::insert(piece const& p, int x){
                     curr = curr->next;
                 }
             }
+
+            //shift pieces
+            bool shifted;
+            do{
+                shifted = false;
+                for(auto it=begin();it != end();++it){
+
+                    if(containment(it->p, it->x, it->y + 1)){
+                        bool shifted = true;
+                        it->y++;
+                    }
+
+                }
+            }while(shifted);
+
         }while(is_full);
     }
 
