@@ -267,7 +267,7 @@ void piece::print_ascii_art(std::ostream& os) const {
         uint32_t j;
         for(j=0;j < side();++j){
             if (m_grid[i][j]){
-                //os << i<<j;
+                /*os << i << j;*/
                 os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
             }
             else
@@ -830,7 +830,7 @@ void tetris::print_ascii_art(std::ostream& os) const {
 }
 
 bool tetris::containment(const piece& p, int x, int y) const {
-    if (y < 0) return false; // controlla che non si vada sopra o a sinistra
+    if (y < 0) { return false; }// controlla che non si vada sopra o a sinistra
 
     int side = static_cast<int>(p.side());
 
@@ -843,7 +843,6 @@ bool tetris::containment(const piece& p, int x, int y) const {
 
                 if (y_real < 0 or x_real >= static_cast<int>(width()) or y_real >= static_cast<int>(height()) or x_real < 0) {
                     return false;
-
                 }
 
                 for(auto it = begin(); it != end(); it++){
@@ -893,29 +892,56 @@ void tetris::add(piece const& p, int x, int y){
 
 }
 
+bool have_top_space(piece const& p){
+    for(int i = 0; i < p.side() ; ++i){
+        for(int j = 0; j < p.side(); ++j){
+            if(p(j, i)){
+                if(j == 0) { return false; }
+                else
+                { return true; }
+            }
+        }
+    }
+    return false; //piece empty
+
+}
+
 void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
 
     //inserimento piece
-    int y = p.side() - 1; //controllo che l'inizio sia effetivamente side-1
 
-    /*bool occupied = false;
-    for(uint32_t i = 0; i < p.side(); ++i){
-        for(uint32_t j = 0; j < p.side(); ++j){
-            if(p(j, i)){
-                occupied = true;
+    int y;
+    bool trovato = false;
+
+
+    if(have_top_space(p)){
+        for(int i = 0; i < p.side() ; ++i){
+            for(int j = 0; j < p.side(); ++j){
+                if(p(i, j)){
+                    y = i + 1;
+                    trovato = true;
+                    break;
+                }
             }
+            if(trovato) break;
         }
-    }*/
+
+        y = p.side() - y;
+    }
+    else{
+        y = p.side() - 1;
+    }
 
     try{
-        std::cout << "y: " << y;
         for(;containment(p, x, y);++y){}
         y--;
         add(p, x, y);
     }catch(tetris_exception e){
         throw tetris_exception("GAME OVER");
     }
+
+
 
     //cut rows
     for(int row = 0;row < height();++row){
