@@ -326,12 +326,12 @@ void grid_all(piece& p, bool value){
     }
 }
 
-bool GRID(std::istream& is, piece& p){
+/*bool*/void GRID(std::istream& is, piece& p){
     if(p.side() < 2 or !pow_of_2(p.side())) {
         throw tetris_exception("piece GRID: piece in parser too big");
     }
 
-    bool r = true;
+    //bool r = true;
     char c;
     skip(is);
 
@@ -344,8 +344,8 @@ bool GRID(std::istream& is, piece& p){
         piece(side_2, p.color())   // br
     };
 
-    bool all_true = false;
-    bool all_false[4] = {false, false, false, false};
+    /*bool all_true = false;
+    bool all_false[4] = {false, false, false, false};*/
     for(int i=0;i < 4;++i){
         if(is.peek() == '('){
             is >> c;
@@ -355,14 +355,14 @@ bool GRID(std::istream& is, piece& p){
                 is >> c;
                 skip(is);
 
-                if(i == 3 and r == true) all_true = true;
+                /*if(i == 3 and r == true) all_true = true;*/
 
                 //pieces[i] all true;
                 grid_all(pieces[i], true);
 
             }
             else{
-                if(!GRID(is, pieces[i])) r = false;
+                /*if(!*/GRID(is, pieces[i])/*) r = false*/;
 
                 if(is.peek() == ')'){
                     is >> c;
@@ -375,7 +375,7 @@ bool GRID(std::istream& is, piece& p){
         }
 
         else if(is.peek() == '['){
-            r = false;
+            //r = false;
             is >> c;
             skip(is);
 
@@ -383,7 +383,7 @@ bool GRID(std::istream& is, piece& p){
                 is >> c;
                 skip(is);
                 //pieces[i] all false;
-                all_false[i] = true;
+                //all_false[i] = true;
 
                 grid_all(pieces[i], false);
             }
@@ -396,12 +396,12 @@ bool GRID(std::istream& is, piece& p){
         }
     }
 
-    int check_false = 0;
+    /*int check_false = 0;
     for(int i=0;i < 4;i++){
         if(all_false[i]) check_false++;
-    }
+    }*//*
 
-    if(check_false == 4) throw tetris_exception("piece GRID: [] is the only full piece format accepted");
+    if(check_false == 4) throw tetris_exception("piece GRID: [] is the only full piece format accepted");*/
 
 
     try{
@@ -425,10 +425,10 @@ bool GRID(std::istream& is, piece& p){
         throw tetris_exception("piece GRID: error in matrix formation: " + e.what());
     }
 
-    if(r == true and all_true == true) throw tetris_exception("piece GRID 2: () is the only full piece accepted");
+    /*if(r == true and all_true == true) throw tetris_exception("piece GRID 2: () is the only full piece accepted");*/
     skip(is);
 
-    return r;
+    /*return r;*/
 }
 
 std::istream& operator>>(std::istream& is, piece& p){
@@ -475,9 +475,9 @@ std::istream& operator>>(std::istream& is, piece& p){
             grid_all(p, true);
         }
         else{
-
-            if(GRID(is, p))
-                throw tetris_exception("piece operator>>: () is the only full piece format accepted");
+            GRID(is, p);
+            /*if(GRID(is, p))
+                throw tetris_exception("piece operator>>: () is the only full piece format accepted");*/
 
             if(is.peek() == ')'){
                 is >> c;
@@ -897,9 +897,20 @@ void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
 
     //inserimento piece
-    int y;
+    int y = p.side() - 1; //controllo che l'inizio sia effetivamente side-1
+
+    /*bool occupied = false;
+    for(uint32_t i = 0; i < p.side(); ++i){
+        for(uint32_t j = 0; j < p.side(); ++j){
+            if(p(j, i)){
+                occupied = true;
+            }
+        }
+    }*/
+
     try{
-        for(y = p.side() - 1;containment(p, x, y);++y){}
+        std::cout << "y: " << y;
+        for(;containment(p, x, y);++y){}
         y--;
         add(p, x, y);
     }catch(tetris_exception e){
@@ -912,7 +923,7 @@ void tetris::insert(piece const& p, int x){
         do{
             bool* last_row = new bool[m_width]();
 
-            //controllo ultima riga tutto pieno
+            //controllo riga tutto pieno
             for(auto it=begin();it != end();it++){
                 int side = it->p.side();
                 for(int i=0;i < side;++i){
@@ -991,7 +1002,7 @@ void tetris::insert(piece const& p, int x){
                 for(auto it=begin();it != end();++it){
 
                     if(containment(it->p, it->x, it->y + 1)){
-                        bool shifted = true;
+                        shifted = true;
                         it->y++;
                     }
 
