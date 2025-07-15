@@ -735,22 +735,6 @@ bool tetris::operator==(tetris const& rhs) const{
         if(n->tp.p != m->tp.p) return false;
     }
 
-/*    for(;m != nullptr; m = m->next){
-        bool found = false;
-
-        int i=0;
-        for(n = rhs.m_field;n != nullptr; n = n->next){
-            if(n->tp.p == m->tp.p){
-
-                if(n->tp.x == m->tp.x and n->tp.y == m->tp.y){
-                    found = true;
-                }
-            }
-        }
-        if(found == false) return false;
-
-    }*/
-
     if (n != nullptr or m != nullptr)
         return false;
 
@@ -849,7 +833,7 @@ bool tetris::containment(const piece& p, int x, int y) const {
                     int it_side = it->p.side();
                     for(int it_i=0;it_i < it_side;++it_i){
                         for(int it_j=0;it_j < it_side;++it_j){
-                            if(it->p != p and it->p(it_j, it_i)){  //invertite rispetto a piece operator()
+                            if(&it->p != &p and it->p(it_j, it_i)){  //invertite rispetto a piece operator()
 
                                 int it_x_real = it_i + it->x;
 
@@ -879,17 +863,6 @@ void tetris::add(piece const& p, int x, int y){
     //aggiunge in testa
     node* n = new node{tp, m_field};
     m_field = n;
-
-/*
-  //aggiunge in coda
-    if(m_field == nullptr) m_field = new node{tp, nullptr};
-    else{
-        node* n = m_field;
-        for(;n->next != nullptr;n = n->next);
-        n->next = new node{tp, nullptr};
-    }
-*/
-
 }
 
 bool have_top_space(piece const& p){
@@ -897,23 +870,19 @@ bool have_top_space(piece const& p){
         for(int j = 0; j < p.side(); ++j){
             if(p(j, i)){
                 if(j == 0) { return false; }
-                else
-                { return true; }
+                else { return true; }
             }
         }
     }
     return false; //piece empty
-
 }
 
 void tetris::insert(piece const& p, int x){
     //i: x, m_width  j: y, m_height
 
     //inserimento piece
-
     int y;
     bool trovato = false;
-
 
     if(have_top_space(p)){
         for(int i = 0; i < p.side() ; ++i){
@@ -926,7 +895,6 @@ void tetris::insert(piece const& p, int x){
             }
             if(trovato) break;
         }
-
         y = p.side() - y;
     }
     else{
@@ -940,8 +908,6 @@ void tetris::insert(piece const& p, int x){
     }catch(tetris_exception e){
         throw tetris_exception("GAME OVER");
     }
-
-
 
     //cut rows
     for(int row = 0;row < height();++row){
@@ -1037,7 +1003,6 @@ void tetris::insert(piece const& p, int x){
 
         }while(is_full);
     }
-
 }
 
 //iterator
@@ -1127,27 +1092,6 @@ std::ostream& operator<<(std::ostream& os, tetris const& t){
 
     return os;
 }
-
-/*
-std::ostream& operator<<(std::ostream& os, tetris const& t) {
-    os << t.score() << " " << t.width() << " " << t.height() << "\n";
-
-    const int MAX = 100;
-    tetris_piece pieces[MAX];
-
-    int count = 0;
-    for (auto it = t.begin(); it != t.end(); ++it) {
-        if (count >= MAX) break;
-        pieces[count++] = *it;
-    }
-
-    for (int i = count - 1; i >= 0; --i) {
-        os << pieces[i].p << " " << pieces[i].x << " " << pieces[i].y << "\n";
-    }
-
-    return os;
-}
-*/
 
 std::istream& operator>>(std::istream& is, tetris& t){
     skip(is);
