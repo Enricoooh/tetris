@@ -865,9 +865,10 @@ void tetris::add(piece const& p, int x, int y){
     m_field = n;
 }
 
+
 bool have_top_space(piece const& p){
-    for(int i = 0; i < p.side() ; ++i){
-        for(int j = 0; j < p.side(); ++j){
+    for(uint32_t i = 0; i < p.side() ; ++i){
+        for(uint32_t j = 0; j < p.side(); ++j){
             if(p(j, i)){
                 if(j == 0) { return false; }
                 else { return true; }
@@ -885,20 +886,20 @@ void tetris::insert(piece const& p, int x){
     bool trovato = false;
 
     if(have_top_space(p)){
-        for(int i = 0; i < p.side() ; ++i){
-            for(int j = 0; j < p.side(); ++j){
+        for(uint32_t i = 0; i < p.side() ; ++i){
+            for(uint32_t j = 0; j < p.side(); ++j){
                 if(p(i, j)){
-                    y = i + 1;
+                    y = static_cast<int>(i + 1);
                     trovato = true;
                     break;
                 }
             }
             if(trovato) break;
         }
-        y = p.side() - y;
+        y = static_cast<int>(p.side()) - y;
     }
     else{
-        y = p.side() - 1;
+        y = static_cast<int>(p.side()) - 1;
     }
 
     try{
@@ -910,7 +911,7 @@ void tetris::insert(piece const& p, int x){
     }
 
     //cut rows
-    for(int row = 0;row < height();++row){
+    for(uint32_t row = 0;row < height();++row){
         bool is_full = false;
         do{
             bool* last_row = new bool[m_width]();
@@ -923,9 +924,9 @@ void tetris::insert(piece const& p, int x){
                         int y_real = j + it->y - (side-1);
                         int x_real = i + it->x;
 
-                        if(y_real >= 0 and x_real >= 0 and y_real < height() and x_real < width() and
+                        if(y_real >= 0 and x_real >= 0 and y_real < static_cast<int>(height()) and x_real < static_cast<int>(width()) and
                             j >= 0 and i >= 0 and j < side and i < side){
-                            if(it->p(j, i) and y_real == row){
+                            if(it->p(j, i) and y_real == static_cast<int>(row)){
                                 last_row[x_real] = true;
                             }
                         }
@@ -934,7 +935,7 @@ void tetris::insert(piece const& p, int x){
             }
 
             is_full = true;
-            for(int i=0;i<width() - 1;++i){
+            for(int i=0;i < static_cast<int>(width() - 1);++i){
                 if(!last_row[i]) is_full = false;
             }
 
@@ -947,9 +948,9 @@ void tetris::insert(piece const& p, int x){
                         for(int j=0;j < side;++j){
                             if(!cutted){
                                 int y_real = j + it->y - (side-1);
-                                int x_real = i + it->x;
+                                //int x_real = i + it->x;
 
-                                if(y_real == row){
+                                if(y_real == static_cast<int>(row)){
                                     it->p.cut_row(j);
                                     cutted = true;
                                 }
